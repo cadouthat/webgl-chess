@@ -1,2 +1,2 @@
-# webgl-chess
-Multiplayer chess game with 3D rendering via WebGL
+# WebGL Chess
+Thanks for visiting! I created this project to get familiar with WebGL. If you'd like to play, the game is hosted here: <link coming soon>
