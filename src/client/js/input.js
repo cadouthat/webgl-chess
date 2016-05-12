@@ -16,23 +16,25 @@ $(window).ready(function(){
 			cam.tilt(-dy / 200);
 		}
 	});
-	$("#glview").mousedown(function(event){
+	$(document).mousedown(function(event){
 		switch(event.which)
 		{
 		case 3:
 			mouseRB = true;
 			break;
 		}
+		return false;
 	});
-	$("#glview").mouseup(function(event){
+	$(document).mouseup(function(event){
 		switch(event.which)
 		{
 		case 3:
 			mouseRB = false;
 			break;
 		}
+		return false;
 	});
-	$("#glview").contextmenu(function(){
+	$(document).contextmenu(function(){
 		return false;
 	});
 });
