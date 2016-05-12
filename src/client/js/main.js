@@ -29,8 +29,22 @@ function init()
 	return true;
 }
 
+function resize()
+{
+	var canvas = $("#glview")[0];
+	canvas.width = $(document).width();
+	canvas.height = $(document).height();
+	gl.viewport(0, 0, canvas.width, canvas.height);
+}
+
 $(document).ready(function()
 {
 	init();
+	resize();
 	draw(performance.now());
+});
+
+$(window).resize(function()
+{
+	resize();
 });
