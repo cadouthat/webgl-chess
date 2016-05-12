@@ -37,7 +37,7 @@ function resize()
 	gl.viewport(0, 0, canvas.width, canvas.height);
 }
 
-$(document).ready(function()
+$(window).ready(function()
 {
 	init();
 	resize();
