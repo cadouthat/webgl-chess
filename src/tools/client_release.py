@@ -16,10 +16,8 @@ if os.path.exists(release):
 os.mkdir(release)
 
 shutil.copy(source + "index.html", release)
-
-css = source + "css/"
-for path in os.listdir(css):
-	shutil.copy(css + path, release)
+shutil.copytree(source + "css/", release + "css/")
+shutil.copytree(source + "thirdparty/", release + "thirdparty/")
 
 tmp = release + "tmp/"
 os.mkdir(tmp)

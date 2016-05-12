@@ -1,4 +1,10 @@
+DEFAULT_FOV = 1.5708; //90 degrees
+NEAR_DIST = 0.001;
+FAR_DIST = 1000;
+
 var gl;
+var mvp;
+var cam;
 
 function init()
 {
@@ -26,6 +32,9 @@ function init()
 
 	buildShaders();
 
+	mvp = new MvpManager();
+	cam = new Camera();
+
 	return true;
 }
 
@@ -35,12 +44,18 @@ function resize()
 	canvas.width = $(document).width();
 	canvas.height = $(document).height();
 	gl.viewport(0, 0, canvas.width, canvas.height);
+
+	var persp = mat4.create();
+	mat4.perspective(persp, DEFAULT_FOV, canvas.width / canvas.height, NEAR_DIST, FAR_DIST);
+	mvp.setProjection(persp);
 }
 
 $(window).ready(function()
 {
 	init();
+
 	resize();
+
 	draw(performance.now());
 });
 

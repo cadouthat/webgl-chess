@@ -20,6 +20,7 @@ function linkShaders(vs, fs)
 }
 
 var prog_test = null;
+var prog_test_mvp = null;
 
 function buildShaders()
 {
@@ -31,4 +32,6 @@ function buildShaders()
 	gl.enableVertexAttribArray(posAttrib);
 	gl.useProgram(prog_test);
 	gl.vertexAttribPointer(posAttrib, 3, gl.FLOAT, false, 0, 0);
+
+	prog_test_mvp = gl.getUniformLocation(prog_test, "mvp");
 }
