@@ -19,19 +19,29 @@ function linkShaders(vs, fs)
 	return prog;
 }
 
-var prog_test = null;
-var prog_test_mvp = null;
+function enableShaderAttrib(prog, name)
+{
+	var attribLoc = gl.getAttribLocation(prog, name);
+	gl.enableVertexAttribArray(attribLoc);
+	return attribLoc;
+}
+
+var main_shader = {
+	"program": null,
+	"attrib": {},
+	"uniform": {}
+};
 
 function buildShaders()
 {
-	shd_test_vs = compileShader(src_test_vs, gl.VERTEX_SHADER);
-	shd_test_fs = compileShader(src_test_fs, gl.FRAGMENT_SHADER);
-	prog_test = linkShaders(shd_test_vs, shd_test_fs);
+	shd_main_vs = compileShader(src_main_vs, gl.VERTEX_SHADER);
+	shd_main_fs = compileShader(src_main_fs, gl.FRAGMENT_SHADER);
+	main_shader.program = linkShaders(shd_main_vs, shd_main_fs);
 
-	var posAttrib = gl.getAttribLocation(prog_test, "pos");
-	gl.enableVertexAttribArray(posAttrib);
-	gl.useProgram(prog_test);
-	gl.vertexAttribPointer(posAttrib, 3, gl.FLOAT, false, 0, 0);
-
-	prog_test_mvp = gl.getUniformLocation(prog_test, "mvp");
+	gl.useProgram(main_shader.program);
+	main_shader.attrib.pos = enableShaderAttrib(main_shader.program, "pos");
+	main_shader.attrib.norm = enableShaderAttrib(main_shader.program, "norm");
+	main_shader.uniform.mvp = gl.getUniformLocation(main_shader.program, "mvp");
+	main_shader.uniform.model = gl.getUniformLocation(main_shader.program, "model");
+	main_shader.uniform.eye = gl.getUniformLocation(main_shader.program, "eye");
 }
