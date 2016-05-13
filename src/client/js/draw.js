@@ -6,7 +6,7 @@ function draw(msTime)
 	gl.uniform3fv(main_shader.uniform.eye, cam.getEye());
 	gl.uniformMatrix4fv(main_shader.uniform.mvp, false, mvp.getMvp());
 
-	drawModel(mdl_triangle);
+	drawModel(monkey);
 
 	update(msTime);
 

@@ -31,7 +31,7 @@ function inflateModel(orig)
 
 function loadModels()
 {
-	mdl_triangle = inflateModel(src_mdl_triangle);
+	monkey = inflateModel(src_monkey);
 }
 
 function drawModel(mdl)

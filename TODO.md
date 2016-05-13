@@ -1,3 +1,2 @@
-* Lighting saturation falloff
-* Blender exporter
+* Optional per-face normals
 * Shader colors and textures

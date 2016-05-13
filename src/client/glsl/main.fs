@@ -27,14 +27,16 @@ void main()
 
 	vec3 total_color = ambient * color_diffuse;
 
-	for(int i = 0; i < 3; i++)
+	const int n_lights = 3;
+	for(int i = 0; i < n_lights; i++)
 	{
-		float diffuse = clamp(dot(frag_norm, light[i]), 0.0, 1.0);
+		float diffuse = dot(frag_norm, light[i]);
+		diffuse = clamp(diffuse, 0.0, 1.0) * (1.0 - ambient) / float(n_lights);
 		total_color += diffuse * color_diffuse;
 
 		if(diffuse > 0.0)
 		{
-			vec3 reflected = normalize(reflect(light[i], frag_norm));
+			vec3 reflected = normalize(reflect(-light[i], frag_norm));
 			vec3 vEye = normalize(eye - frag_pos);
 			float specular = dot(vEye, reflected);
 			if(specular > 0.0 && specular < 1.0)
@@ -43,7 +45,7 @@ void main()
 			}
 			else specular = clamp(specular, 0.0, 1.0);
 
-			total_color += diffuse * specular * color_specular;
+			total_color += specular * (1.0 - ambient) * color_specular;
 		}
 	}
 
