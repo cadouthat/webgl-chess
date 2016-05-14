@@ -72,8 +72,8 @@ def write(filepath, smooth_normals):
 		file.write(",".join(map(str, face_normals)))
 	file.write("], \"draw\": [")
 	file.write(",".join(map(str, indices)))
-	file.write("] }; ")
-	file.write("var " + var_name + " = null;")
+	file.write("] };\n")
+	file.write("var mdl_" + var_name + " = null;\n")
 	file.close()
 
 class JSExporter(bpy.types.Operator, ExportHelper):

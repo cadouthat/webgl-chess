@@ -33,10 +33,27 @@ function inflateModel(orig)
 	};
 }
 
+function loadTexture(id)
+{
+	var img = new Image();
+	var tex = gl.createTexture();
+	img.onload = function(){
+		gl.bindTexture(gl.TEXTURE_2D, tex);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+		gl.generateMipmap(gl.TEXTURE_2D);
+	};
+	img.src = "tex/" + id + ".png";
+	return tex;
+}
+
 function loadModels()
 {
-	monkey = inflateModel(src_monkey);
-	cube = inflateModel(src_cube);
+	mdl_monkey = inflateModel(src_monkey);
+	mdl_cube = inflateModel(src_cube);
+	tex_white_marble = loadTexture("white_marble");
+	gl.bindTexture(gl.TEXTURE_2D, tex_white_marble);
 }
 
 function drawModel(mdl)

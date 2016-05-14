@@ -7,6 +7,18 @@ def failure(reason):
 	print(reason)
 	sys.exit(1)
 
+def copyCollapse(dir, dest):
+	for path in os.listdir(dir):
+		if os.path.isdir(dir + path):
+			copyCollapse(dir + path, dest)
+		else:
+			shutil.copy(dir + path, dest)
+
+def copyShallow(dir, dest):
+	for path in os.listdir(dir):
+		if not os.path.isdir(dir + path):
+			shutil.copy(dir + path, dest)
+
 source = "../client/"
 release = "../../release/"
 
@@ -18,17 +30,12 @@ os.mkdir(release)
 shutil.copy(source + "index.html", release)
 shutil.copytree(source + "css/", release + "css/")
 shutil.copytree(source + "thirdparty/", release + "thirdparty/")
+shutil.copytree(source + "mdl/tex/", release + "tex/")
 
 tmp = release + "tmp/"
 os.mkdir(tmp)
-
-js = source + "js/"
-for path in os.listdir(js):
-	shutil.copy(js + path, tmp)
-
-mdl = source + "mdl/"
-for path in os.listdir(mdl):
-	shutil.copy(mdl + path, tmp)
+copyCollapse(source + "js/", tmp)
+copyShallow(source + "mdl/", tmp)
 
 if subprocess.call(["python", "transform_js/wrap_shaders.py", source + "glsl/", tmp]) != 0:
 	failure("Failed to wrap shaders")

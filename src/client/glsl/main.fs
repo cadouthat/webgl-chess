@@ -4,8 +4,10 @@ precision mediump float;
 
 varying vec3 frag_pos;
 varying vec3 frag_norm;
+varying vec2 frag_uv;
 
 uniform vec3 eye;
+uniform sampler2D tex;
 
 float ambient = 0.2;
 vec3 light[3];
@@ -14,7 +16,8 @@ float specPower = 64.0;
 
 void main()
 {
-	vec3 color_diffuse = vec3(1.0);
+	vec3 texture_mask = vec3(texture2D(tex, frag_uv));
+	vec3 color_diffuse = vec3(1.0) * texture_mask;
 	vec3 color_specular = vec3(1.0);
 
 	if(!light_init)

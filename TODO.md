@@ -1,4 +1,3 @@
-* Shader colors and textures
-* Hierarchy support for JS build - organize JS code
-* Loading screen
-* Optimize model storage?
+* UV export / shading
+* Loading screen - async loading for models
+* Async loading for models + optimize storage
