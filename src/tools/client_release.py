@@ -10,7 +10,7 @@ def failure(reason):
 def copyCollapse(dir, dest):
 	for path in os.listdir(dir):
 		if os.path.isdir(dir + path):
-			copyCollapse(dir + path, dest)
+			copyCollapse(dir + path + "/", dest)
 		else:
 			shutil.copy(dir + path, dest)
 

@@ -49,17 +49,3 @@ function resize()
 	mat4.perspective(persp, DEFAULT_FOV, canvas.width / canvas.height, NEAR_DIST, FAR_DIST);
 	mvp.setProjection(persp);
 }
-
-$(window).ready(function()
-{
-	init();
-
-	resize();
-
-	draw(performance.now());
-});
-
-$(window).resize(function()
-{
-	resize();
-});
