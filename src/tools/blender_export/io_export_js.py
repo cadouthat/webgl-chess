@@ -19,7 +19,7 @@ import os
 from bpy.props import StringProperty, BoolProperty
 from bpy_extras.io_utils import ExportHelper
 
-def write(filepath):
+def write(filepath, smooth_normals):
 	scene = bpy.context.scene
 
 	if len(bpy.context.selected_objects) > 1:
@@ -30,23 +30,32 @@ def write(filepath):
 		if me is None:
 			raise ValueError("Could not convert object to mesh")
 
+		matrix = obj.matrix_world.copy()
+
 		indices = []
+		face_normals = []
 		for face in me.tessfaces:
+			world_norm = face.normal.to_4d()
+			world_norm = matrix * world_norm
+			world_norm = world_norm.to_3d()
+
 			if(len(face.vertices) == 3):
 				indices.extend(face.vertices)
+				face_normals.extend(world_norm)
 			else:
 				indices.extend([face.vertices[0], face.vertices[1], face.vertices[2]])
 				indices.extend([face.vertices[2], face.vertices[3], face.vertices[0]])
+				face_normals.extend(world_norm)
+				face_normals.extend(world_norm)
 
 		positions = []
-		normals = []
-		matrix = obj.matrix_world.copy()
+		vert_normals = []
 		for pos in me.vertices:
 			positions.extend(matrix * pos.co)
 
 			norm4 = pos.normal.to_4d()
 			norm4 = matrix * norm4
-			normals.extend(norm4.to_3d())
+			vert_normals.extend(norm4.to_3d())
 
 		bpy.data.meshes.remove(me)
 
@@ -55,8 +64,12 @@ def write(filepath):
 	file.write("var src_" + var_name + " = { ")
 	file.write("\"positions\": [")
 	file.write(",".join(map(str, positions)))
-	file.write("], \"normals\": [")
-	file.write(",".join(map(str, normals)))
+	if smooth_normals:
+		file.write("], \"vert_normals\": [")
+		file.write(",".join(map(str, vert_normals)))
+	else:
+		file.write("], \"face_normals\": [")
+		file.write(",".join(map(str, face_normals)))
 	file.write("], \"draw\": [")
 	file.write(",".join(map(str, indices)))
 	file.write("] }; ")
@@ -70,8 +83,14 @@ class JSExporter(bpy.types.Operator, ExportHelper):
 	filename_ext = ".js"
 	filter_glob = StringProperty(default="*.js", options={'HIDDEN'})
 
+	smooth_normals = BoolProperty(
+		name="Smooth Normals",
+		description="Per-vertex smoothed normals",
+		default=True
+		)
+
 	def execute(self, context):
-		write(self.filepath)
+		write(self.filepath, self.smooth_normals)
 
 		return {'FINISHED'}
 

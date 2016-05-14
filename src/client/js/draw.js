@@ -7,6 +7,7 @@ function draw(msTime)
 	gl.uniformMatrix4fv(main_shader.uniform.mvp, false, mvp.getMvp());
 
 	drawModel(monkey);
+	//drawModel(cube);
 
 	update(msTime);
 

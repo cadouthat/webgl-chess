@@ -6,12 +6,16 @@ function inflateModel(orig)
 	for(var i = 0; i < orig["draw"].length; i++)
 	{
 		var vi = orig["draw"][i] * 3;
-		positions.push(orig["positions"][vi],
-			orig["positions"][vi + 1],
-			orig["positions"][vi + 2]);
-		normals.push(orig["normals"][vi],
-			orig["normals"][vi + 1],
-			orig["normals"][vi + 2]);
+		positions.push.apply(positions, orig["positions"].slice(vi, vi + 3));
+		if("vert_normals" in orig)
+		{
+			normals.push.apply(normals, orig["vert_normals"].slice(vi, vi + 3));
+		}
+		else if("face_normals" in orig)
+		{
+			var fi = i - i % 3;
+			normals.push.apply(normals, orig["face_normals"].slice(fi, fi + 3));
+		}
 	}
 
 	var buf_positions = gl.createBuffer();
@@ -32,6 +36,7 @@ function inflateModel(orig)
 function loadModels()
 {
 	monkey = inflateModel(src_monkey);
+	cube = inflateModel(src_cube);
 }
 
 function drawModel(mdl)
