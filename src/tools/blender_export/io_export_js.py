@@ -19,61 +19,125 @@ import os
 from bpy.props import StringProperty, BoolProperty
 from bpy_extras.io_utils import ExportHelper
 
+# Main export logic
 def write(filepath, smooth_normals):
 	scene = bpy.context.scene
 
-	if len(bpy.context.selected_objects) > 1:
-		raise AssertionError("Please select only one object")
+	# Requires exactly one selected object
+	if len(bpy.context.selected_objects) != 1:
+		raise AssertionError("Please select one object")
+	obj = bpy.context.selected_objects[0]
 
-	for obj in bpy.context.selected_objects:
-		me = obj.to_mesh(scene, True, "PREVIEW")
-		if me is None:
-			raise ValueError("Could not convert object to mesh")
+	# Convert selected object to mesh (temporary)
+	mesh = obj.to_mesh(scene, True, "PREVIEW")
+	if mesh is None:
+		raise ValueError("Could not convert object to mesh")
 
-		matrix = obj.matrix_world.copy()
+	# Get the current world matrix to transform exported data
+	matrix = obj.matrix_world.copy()
 
-		indices = []
-		face_normals = []
-		for face in me.tessfaces:
-			world_norm = face.normal.to_4d()
-			world_norm = matrix * world_norm
-			world_norm = world_norm.to_3d()
+	# TODO: support multiple materials
+	# TODO: support all UV layers
+	# Find the last active UV layer
+	active_uv = []
+	for layer in mesh.tessface_uv_textures:
+		if layer.active:
+			active_uv = layer.data
 
-			if(len(face.vertices) == 3):
-				indices.extend(face.vertices)
-				face_normals.extend(world_norm)
-			else:
-				indices.extend([face.vertices[0], face.vertices[1], face.vertices[2]])
-				indices.extend([face.vertices[2], face.vertices[3], face.vertices[0]])
-				face_normals.extend(world_norm)
-				face_normals.extend(world_norm)
+	# Build per-face lists
+	indices = []
+	face_normals = []
+	face_uvs = []
+	# Loop all tesselation faces by index
+	for iFace in range(len(mesh.tessfaces)):
+		face = mesh.tessfaces[iFace]
 
-		positions = []
-		vert_normals = []
-		for pos in me.vertices:
-			positions.extend(matrix * pos.co)
+		# Transform face normal to world coords
+		world_norm = face.normal.to_4d()
+		world_norm = matrix * world_norm
+		world_norm = world_norm.to_3d()
 
-			norm4 = pos.normal.to_4d()
-			norm4 = matrix * norm4
-			vert_normals.extend(norm4.to_3d())
+		# Supports triangles and quads
+		if len(face.vertices) == 3: # Already a triangle
+			# Append vertex indices
+			indices.extend(face.vertices)
+			# Append face normal
+			face_normals.extend(world_norm)
+			# Append face UVs if active
+			if len(active_uv) > 0:
+				face_uvs.extend(active_uv[iFace].uv1)
+				face_uvs.extend(active_uv[iFace].uv2)
+				face_uvs.extend(active_uv[iFace].uv3)
+		else: # Triangulate quad
+			# Append vertex indices (triangulate quad)
+			indices.extend([face.vertices[0], face.vertices[1], face.vertices[2]])
+			indices.extend([face.vertices[2], face.vertices[3], face.vertices[0]])
+			# Append face normal twice (same for both triangles)
+			face_normals.extend(world_norm)
+			face_normals.extend(world_norm)
+			# Append face UVs if active (triangulate quad)
+			if len(active_uv) > 0:
+				face_uvs.extend(active_uv[iFace].uv1)
+				face_uvs.extend(active_uv[iFace].uv2)
+				face_uvs.extend(active_uv[iFace].uv3)
+				face_uvs.extend(active_uv[iFace].uv3)
+				face_uvs.extend(active_uv[iFace].uv4)
+				face_uvs.extend(active_uv[iFace].uv1)
 
-		bpy.data.meshes.remove(me)
+	# Build per-vertex lists
+	positions = []
+	vert_normals = []
+	# Loop all vertices
+	for pos in mesh.vertices:
+		# Append the position in world coords
+		positions.extend(matrix * pos.co)
 
-	var_name = os.path.basename(filepath).replace(".js", "").replace(".", "_")
+		# Append the vertex normal in world coords
+		norm4 = pos.normal.to_4d()
+		norm4 = matrix * norm4
+		vert_normals.extend(norm4.to_3d())
+
+	# Flip texture V coords for OpenGL
+	for i in range(1, len(face_uvs), 2):
+		face_uvs[i] = 1 - face_uvs[i]
+
+	# Destroy temporary mesh
+	bpy.data.meshes.remove(mesh)
+
+	# Open output file
 	file = open(filepath, "w")
+
+	# Source object
+	var_name = os.path.basename(filepath).replace(".js", "").replace(".", "_")
 	file.write("var src_" + var_name + " = { ")
+
+	# Vertex positions (3 values per vertex)
 	file.write("\"positions\": [")
-	file.write(",".join(map(str, positions)))
+	file.write(",".join(["{0:.6g}".format(num) for num in positions]))
+
+	# Check normal mode
 	if smooth_normals:
+		# Vertex normals (3 values per vertex)
 		file.write("], \"vert_normals\": [")
-		file.write(",".join(map(str, vert_normals)))
+		file.write(",".join(["{0:.3g}".format(num) for num in vert_normals]))
 	else:
+		# Face normals (3 values per face)
 		file.write("], \"face_normals\": [")
-		file.write(",".join(map(str, face_normals)))
+		file.write(",".join(["{0:.3g}".format(num) for num in face_normals]))
+
+	if len(face_uvs) > 0:
+		# Face UVs (6 values per face)
+		file.write("], \"face_uvs\": [")
+		file.write(",".join(["{0:.3g}".format(num) for num in face_uvs]))
+
+	# Vertex index list (3 values per face)
 	file.write("], \"draw\": [")
 	file.write(",".join(map(str, indices)))
 	file.write("] };\n")
+
+	# Model object placeholder
 	file.write("var mdl_" + var_name + " = null;\n")
+
 	file.close()
 
 class JSExporter(bpy.types.Operator, ExportHelper):

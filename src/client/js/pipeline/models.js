@@ -1,9 +1,10 @@
 function inflateModel(orig)
 {
+	var numVerts = orig["draw"].length;
 	var positions = [];
 	var normals = [];
 
-	for(var i = 0; i < orig["draw"].length; i++)
+	for(var i = 0; i < numVerts; i++)
 	{
 		var vi = orig["draw"][i] * 3;
 		positions.push.apply(positions, orig["positions"].slice(vi, vi + 3));
@@ -26,10 +27,22 @@ function inflateModel(orig)
 	gl.bindBuffer(gl.ARRAY_BUFFER, buf_normals);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
 
+	var buf_uvs = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, buf_uvs);
+	if("face_uvs" in orig)
+	{
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(orig["face_uvs"]), gl.STATIC_DRAW);
+	}
+	else
+	{
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(numVerts * 2), gl.STATIC_DRAW);
+	}
+
 	return {
 		"positions": buf_positions,
 		"normals": buf_normals,
-		"numVerts": orig["draw"].length
+		"uvs": buf_uvs,
+		"numVerts": numVerts
 	};
 }
 
@@ -52,14 +65,6 @@ function loadTexture(id)
 	return tex;
 }
 
-function loadModels()
-{
-	mdl_monkey = inflateModel(src_monkey);
-	mdl_cube = inflateModel(src_cube);
-	tex_white_marble = loadTexture("white_marble");
-	gl.bindTexture(gl.TEXTURE_2D, tex_white_marble);
-}
-
 function drawModel(mdl)
 {
 	gl.uniformMatrix4fv(main_shader.uniform.model, false, mvp.getModel());
@@ -69,6 +74,9 @@ function drawModel(mdl)
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, mdl["normals"]);
 	gl.vertexAttribPointer(main_shader.attrib.norm, 3, gl.FLOAT, false, 0, 0);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, mdl["uvs"]);
+	gl.vertexAttribPointer(main_shader.attrib.uv, 2, gl.FLOAT, false, 0, 0);
 
 	gl.drawArrays(gl.TRIANGLES, 0, mdl["numVerts"]);
 }

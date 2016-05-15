@@ -6,8 +6,8 @@ function draw(msTime)
 	gl.uniform3fv(main_shader.uniform.eye, cam.getEye());
 	gl.uniformMatrix4fv(main_shader.uniform.mvp, false, mvp.getMvp());
 
-	drawModel(mdl_monkey);
-	//drawModel(mdl_cube);
+	gl.bindTexture(gl.TEXTURE_2D, tex_white_marble);
+	drawModel(mdl_queen);
 
 	update(msTime);
 

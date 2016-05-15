@@ -41,6 +41,7 @@ function buildShaders()
 	gl.useProgram(main_shader.program);
 	main_shader.attrib.pos = enableShaderAttrib(main_shader.program, "pos");
 	main_shader.attrib.norm = enableShaderAttrib(main_shader.program, "norm");
+	main_shader.attrib.uv = enableShaderAttrib(main_shader.program, "uv");
 	main_shader.uniform.mvp = gl.getUniformLocation(main_shader.program, "mvp");
 	main_shader.uniform.model = gl.getUniformLocation(main_shader.program, "model");
 	main_shader.uniform.eye = gl.getUniformLocation(main_shader.program, "eye");

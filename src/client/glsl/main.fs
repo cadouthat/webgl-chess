@@ -9,7 +9,7 @@ varying vec2 frag_uv;
 uniform vec3 eye;
 uniform sampler2D tex;
 
-float ambient = 0.2;
+float ambient = 0.4;
 vec3 light[3];
 bool light_init = false;
 float specPower = 64.0;
