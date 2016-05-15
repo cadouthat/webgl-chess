@@ -37,8 +37,8 @@ $(window).ready(function(){
 	$(document).contextmenu(function(){
 		return false;
 	});
-	$(document).bind("mousewheel", function(event){
-		if(event.originalEvent.wheelDelta > 0)
+	$(document).bind("mousewheel DOMMouseScroll", function(event){
+		if(event.originalEvent.wheelDelta > 0 || event.originalEvent.detail < 0)
 		{
 			cam.zoom(0.9);
 		}
