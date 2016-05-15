@@ -12,7 +12,7 @@ uniform sampler2D tex;
 float ambient = 0.4;
 vec3 light[3];
 bool light_init = false;
-float specPower = 64.0;
+float specPower = 96.0;
 
 void main()
 {
