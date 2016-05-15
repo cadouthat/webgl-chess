@@ -1,8 +1,11 @@
 function Camera()
 {
+	this._smoothRate = 4;
+
 	this._lookAt = mat4.create();
 	this._eye = vec3.create();
 	this._distance = 5;
+	this._targetDistance = this._distance;
 	this._theta = 0;
 	this._phi = 0;
 	this._stale = true;
@@ -20,6 +23,28 @@ function Camera()
 		}
 	}
 
+	this.animate = function(span)
+	{
+		if(this._targetDistance != this._distance)
+		{
+			var diffDistance = this._targetDistance - this._distance;
+			var incDistance = span * this._smoothRate * Math.max(this._distance, this._targetDistance);
+			if(Math.abs(diffDistance) > incDistance)
+			{
+				if(diffDistance > 0)
+				{
+					this._distance += incDistance;
+				}
+				else
+				{
+					this._distance -= incDistance;
+				}
+			}
+			else this._distance = this._targetDistance;
+			this._stale = true;
+		}
+	};
+
 	this.getLookAt = function()
 	{
 		this._update();
@@ -34,7 +59,7 @@ function Camera()
 
 	this.zoom = function(factor)
 	{
-		this._distance *= factor;
+		this._targetDistance *= factor;
 		this._stale = true;
 	};
 

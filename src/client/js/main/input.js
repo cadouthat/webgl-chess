@@ -37,4 +37,14 @@ $(window).ready(function(){
 	$(document).contextmenu(function(){
 		return false;
 	});
+	$(document).bind("mousewheel", function(event){
+		if(event.originalEvent.wheelDelta > 0)
+		{
+			cam.zoom(0.9);
+		}
+		else
+		{
+			cam.zoom(1.1);
+		}
+	});
 });
