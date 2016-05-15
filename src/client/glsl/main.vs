@@ -13,9 +13,11 @@ uniform mat4 model;
 
 void main()
 {
+	//Fragment passthrough values (transformed to world space)
 	frag_pos = vec3(model * vec4(pos, 1));
 	frag_norm = normalize(vec3(model * vec4(norm, 0)));
 	frag_uv = uv;
 
+	//Fragment position in screen space
 	gl_Position = mvp * vec4(pos, 1);
 }

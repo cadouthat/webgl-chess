@@ -1,9 +1,12 @@
 function MvpManager()
 {
+	//Cached model-view-projection matrix
 	this._mvp = mat4.create();
+	//Component matrices
 	this._model = mat4.create();
 	this._view = mat4.create();
 	this._projection = mat4.create();
+	//Track cached value staleness
 	this._stale = true;
 
 	this.setModel = function(mat)
@@ -41,6 +44,7 @@ function MvpManager()
 
 	this.getMvp = function()
 	{
+		//Update cached value if stale
 		if(this._stale)
 		{
 			mat4.multiply(this._mvp, this._projection, this._view);

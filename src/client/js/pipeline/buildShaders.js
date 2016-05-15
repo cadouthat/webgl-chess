@@ -1,3 +1,4 @@
+//Compile shader from source string and type
 function compileShader(source, type)
 {
 	var shader = gl.createShader(type);
@@ -10,6 +11,7 @@ function compileShader(source, type)
 	return shader;
 }
 
+//Create program from vertex and fragment shader
 function linkShaders(vs, fs)
 {
 	var prog = gl.createProgram();
@@ -19,6 +21,7 @@ function linkShaders(vs, fs)
 	return prog;
 }
 
+//Enable a named attribute from the given program
 function enableShaderAttrib(prog, name)
 {
 	var attribLoc = gl.getAttribLocation(prog, name);
@@ -26,6 +29,7 @@ function enableShaderAttrib(prog, name)
 	return attribLoc;
 }
 
+//Shader object prototypes
 var main_shader = {
 	"program": null,
 	"attrib": {},
@@ -34,10 +38,12 @@ var main_shader = {
 
 function buildShaders()
 {
+	//Compile and link programs
 	shd_main_vs = compileShader(src_main_vs, gl.VERTEX_SHADER);
 	shd_main_fs = compileShader(src_main_fs, gl.FRAGMENT_SHADER);
 	main_shader.program = linkShaders(shd_main_vs, shd_main_fs);
 
+	//Store attribute and uniform locations
 	gl.useProgram(main_shader.program);
 	main_shader.attrib.pos = enableShaderAttrib(main_shader.program, "pos");
 	main_shader.attrib.norm = enableShaderAttrib(main_shader.program, "norm");
