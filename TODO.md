@@ -1,2 +1,2 @@
 * Loading screen - async loading for models
-* Async loading for models + optimize storage
+* Even more model storage optimization
