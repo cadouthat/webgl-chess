@@ -20,7 +20,7 @@ from bpy.props import StringProperty, BoolProperty
 from bpy_extras.io_utils import ExportHelper
 
 # Main export logic
-def write(filepath, smooth_normals):
+def write(filepath, include_normals, smooth_normals):
 	scene = bpy.context.scene
 
 	# Requires exactly one selected object
@@ -71,7 +71,7 @@ def write(filepath, smooth_normals):
 		else: # Triangulate quad
 			# Append vertex indices (triangulate quad)
 			indices.extend([face.vertices[0], face.vertices[1], face.vertices[2]])
-			indices.extend([face.vertices[2], face.vertices[3], face.vertices[0]])
+			indices.extend([face.vertices[0], face.vertices[2], face.vertices[3]])
 			# Append face normal twice (same for both triangles)
 			face_normals.extend(world_norm)
 			face_normals.extend(world_norm)
@@ -80,9 +80,9 @@ def write(filepath, smooth_normals):
 				face_uvs.extend(active_uv[iFace].uv1)
 				face_uvs.extend(active_uv[iFace].uv2)
 				face_uvs.extend(active_uv[iFace].uv3)
+				face_uvs.extend(active_uv[iFace].uv1)
 				face_uvs.extend(active_uv[iFace].uv3)
 				face_uvs.extend(active_uv[iFace].uv4)
-				face_uvs.extend(active_uv[iFace].uv1)
 
 	# Build per-vertex lists
 	positions = []
@@ -115,15 +115,16 @@ def write(filepath, smooth_normals):
 	file.write("\"positions\": [")
 	file.write(",".join(["{0:.6g}".format(num) for num in positions]))
 
-	# Check normal mode
-	if smooth_normals:
-		# Vertex normals (3 values per vertex)
-		file.write("], \"vert_normals\": [")
-		file.write(",".join(["{0:.3g}".format(num) for num in vert_normals]))
-	else:
-		# Face normals (3 values per face)
-		file.write("], \"face_normals\": [")
-		file.write(",".join(["{0:.3g}".format(num) for num in face_normals]))
+	if include_normals:
+		# Check normal mode
+		if smooth_normals:
+			# Vertex normals (3 values per vertex)
+			file.write("], \"vert_normals\": [")
+			file.write(",".join(["{0:.3g}".format(num) for num in vert_normals]))
+		else:
+			# Face normals (3 values per face)
+			file.write("], \"face_normals\": [")
+			file.write(",".join(["{0:.3g}".format(num) for num in face_normals]))
 
 	if len(face_uvs) > 0:
 		# Face UVs (6 values per face)
@@ -147,6 +148,11 @@ class JSExporter(bpy.types.Operator, ExportHelper):
 	filename_ext = ".js"
 	filter_glob = StringProperty(default="*.js", options={'HIDDEN'})
 
+	include_normals = BoolProperty(
+		name="Include Normals",
+		description="Include normals in export",
+		default=True
+		)
 	smooth_normals = BoolProperty(
 		name="Smooth Normals",
 		description="Per-vertex smoothed normals",
@@ -154,7 +160,7 @@ class JSExporter(bpy.types.Operator, ExportHelper):
 		)
 
 	def execute(self, context):
-		write(self.filepath, self.smooth_normals)
+		write(self.filepath, self.include_normals, self.smooth_normals)
 
 		return {'FINISHED'}
 

@@ -5,6 +5,11 @@ function inflateModel(orig)
 	var positions = [];
 	var normals = [];
 
+	if(!("vert_normals" in orig) && !("face_normals" in orig))
+	{
+		calcSmoothNormals(orig);
+	}
+
 	//Loop over draw indices
 	for(var i = 0; i < numVerts; i++)
 	{
@@ -55,6 +60,79 @@ function inflateModel(orig)
 		"uvs": buf_uvs,
 		"numVerts": numVerts
 	};
+}
+
+function calcSmoothNormals(orig)
+{
+	//Initialize normal for each vertex
+	var normals = [];
+	for(var i = 0; i < orig["positions"].length / 3; i++)
+	{
+		normals.push(vec3.create());
+	}
+
+	//Process each face in draw list
+	for(var i = 0; i < orig["draw"].length; i += 3)
+	{
+		//Get face corners as vec3s
+		var iv = [];
+		var v = [];
+		for(var j = 0; j < 3; j++)
+		{
+			iv[j] = orig["draw"][i + j] * 3;
+			v.push(vec3.fromValues(orig["positions"][iv[j]], orig["positions"][iv[j] + 1], orig["positions"][iv[j] + 2]));
+		}
+		//The normal for this face is the cross product of the edges
+		var n = vec3.cross(vec3.create(), vec3.sub(vec3.create(), v[1], v[0]), vec3.sub(vec3.create(), v[2], v[0]));
+		vec3.normalize(n, n);
+		//Add to the sum for each vertex involved
+		for(var j = 0; j < 3; j++)
+		{
+			vec3.add(normals[orig["draw"][i + j]], normals[orig["draw"][i + j]], n);
+		}
+	}
+
+	//Average out the normal sums and collapse into shallow array
+	var vert_normals = [];
+	for(var i = 0; i < normals.length; i++)
+	{
+		vec3.normalize(normals[i], normals[i]);
+		vert_normals.push.apply(vert_normals, normals[i]);
+	}
+
+	//Add result to object
+	orig["vert_normals"] = vert_normals;
+}
+
+function calcFlatNormals(orig)
+{
+	//Process each face in draw list
+	var normals = [];
+	for(var i = 0; i < orig["draw"].length; i += 3)
+	{
+		//Get face corners as vec3s
+		var iv = [];
+		var v = [];
+		for(var j = 0; j < 3; j++)
+		{
+			iv[j] = orig["draw"][i + j] * 3;
+			v.push(vec3.fromValues(orig["positions"][iv[j]], orig["positions"][iv[j] + 1], orig["positions"][iv[j] + 2]));
+		}
+		//The normal for this face is the cross product of the edges
+		var n = vec3.cross(vec3.create(), vec3.sub(vec3.create(), v[1], v[0]), vec3.sub(vec3.create(), v[2], v[0]));
+		vec3.normalize(n, n);
+		normals.push(n);
+	}
+
+	//Collapse normals into shallow array
+	var face_normals = [];
+	for(var i = 0; i < normals.length; i++)
+	{
+		face_normals.push.apply(face_normals, normals[i]);
+	}
+
+	//Add result to object
+	orig["face_normals"] = face_normals;
 }
 
 function loadTexture(id)

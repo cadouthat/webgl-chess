@@ -7,8 +7,7 @@ function draw(msTime)
 	gl.uniform3fv(main_shader.uniform.eye, cam.getEye());
 
 	//Draw chess board
-	gl.bindTexture(gl.TEXTURE_2D, tex_mixed_marble);
-	drawModel(mdl_board);
+	drawBoard();
 
 	//Draw white chess pieces
 	gl.bindTexture(gl.TEXTURE_2D, tex_white_marble);
@@ -36,7 +35,30 @@ function draw(msTime)
 	window.requestAnimationFrame(draw);
 }
 
-var BOARD_SCALE = 5.875;
+var BOARD_SCALE = 5.82;
+
+function drawBoard()
+{
+	//Bind board texture
+	gl.bindTexture(gl.TEXTURE_2D, tex_mixed_marble);
+
+	//Each segment is 2 spaces wide
+	var sectWidth = 2 * BOARD_SCALE * 2 / BOARD_ROW_COUNT;
+	var pos = vec3.create();
+	for(var ix = 0; ix < BOARD_ROW_COUNT / 2; ix++)
+	{
+		pos[0] = ix * sectWidth - BOARD_SCALE;
+		for(var iy = 0; iy < BOARD_ROW_COUNT / 2; iy++)
+		{
+			pos[2] = iy * sectWidth - BOARD_SCALE;
+			//Translate and draw segment
+			mvp.pushModel();
+			mat4.translate(mvp.getMutableModel(), mvp.getModel(), pos);
+			drawModel(mdl_board);
+			mvp.popModel();
+		}
+	}
+}
 
 //Draw a specific chess piece
 function drawPiece(piece)
