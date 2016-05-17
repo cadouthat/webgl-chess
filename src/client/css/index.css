@@ -13,11 +13,11 @@ p
 
 a
 {
-	color: #9DCE5C;
+	color: #346D88;
 }
 a:hover
 {
-	color: #79B837;
+	color: #0F3542;
 }
 
 html, body, canvas
@@ -25,6 +25,13 @@ html, body, canvas
 	width: 100%;
 	height: 100%;
 	display: block;
+}
+
+body
+{
+	background-image: url("../tex/background.jpg");
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
 }
 
 #footer

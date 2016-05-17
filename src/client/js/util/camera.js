@@ -8,13 +8,13 @@ function Camera()
 	//Cached eye position
 	this._eye = vec3.create();
 	//Distance from origin
-	this._distance = 5;
+	this._distance = 10;
 	//Desired distance from origin (will be animated)
 	this._targetDistance = this._distance;
 	//Vertical rotation
-	this._theta = 0;
+	this._theta = -Math.PI / 6;
 	//Horizontal rotation
-	this._phi = 0;
+	this._phi = Math.PI / 2;
 	//Track cached value staleness
 	this._stale = true;
 
@@ -71,6 +71,8 @@ function Camera()
 	this.zoom = function(factor)
 	{
 		this._targetDistance *= factor;
+		this._targetDistance = Math.min(this._targetDistance, 25);
+		this._targetDistance = Math.max(this._targetDistance, 1);
 		this._stale = true;
 	};
 
@@ -83,7 +85,7 @@ function Camera()
 	this.tilt = function(d)
 	{
 		this._theta += d;
-		this._theta = Math.min(this._theta, Math.PI / 2);
+		this._theta = Math.min(this._theta, 0);
 		this._theta = Math.max(this._theta, -Math.PI / 2);
 		this._stale = true;
 	};

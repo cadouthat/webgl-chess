@@ -1,7 +1,7 @@
 //Static settings for rendering
-DEFAULT_FOV = 1.5708; //90 degrees
-NEAR_DIST = 0.001;
-FAR_DIST = 1000;
+var DEFAULT_FOV = 1.309; //75 degrees
+var NEAR_DIST = 0.001;
+var FAR_DIST = 1000;
 
 var gl;
 var mvp;
@@ -26,7 +26,7 @@ function init()
 	}
 
 	//OpenGL settings
-	gl.clearColor(0.5, 0.5, 0.5, 1.0);
+	gl.clearColor(0, 0, 0, 0);
 
 	gl.enable(gl.DEPTH_TEST);
 	gl.depthFunc(gl.LEQUAL);

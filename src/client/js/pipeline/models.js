@@ -81,8 +81,9 @@ function loadTexture(id)
 
 function drawModel(mdl)
 {
-	//Make sure the model matrix is up to date
+	//Update matrices
 	gl.uniformMatrix4fv(main_shader.uniform.model, false, mvp.getModel());
+	gl.uniformMatrix4fv(main_shader.uniform.mvp, false, mvp.getMvp());
 
 	//Bind and point to attribute arrays
 	gl.bindBuffer(gl.ARRAY_BUFFER, mdl["positions"]);

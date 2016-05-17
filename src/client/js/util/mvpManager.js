@@ -6,6 +6,8 @@ function MvpManager()
 	this._model = mat4.create();
 	this._view = mat4.create();
 	this._projection = mat4.create();
+	//Stack for model matrix history
+	this._modelStack = [];
 	//Track cached value staleness
 	this._stale = true;
 
@@ -15,10 +17,28 @@ function MvpManager()
 		this._stale = true;
 	};
 
+	this.pushModel = function()
+	{
+		this._modelStack.push(mat4.clone(this._model));
+	};
+
+	this.popModel = function()
+	{
+		mat4.copy(this._model, this._modelStack.pop());
+		this._stale = true;
+	};
+
 	this.getModel = function()
 	{
 		return this._model;
-	}
+	};
+
+	//Signals that the returned matrix will be modified in-place
+	this.getMutableModel = function()
+	{
+		this._stale = true;
+		return this.getModel();
+	};
 
 	this.setView = function(mat)
 	{
@@ -29,7 +49,7 @@ function MvpManager()
 	this.getView = function()
 	{
 		return this._view;
-	}
+	};
 
 	this.setProjection = function(mat)
 	{
@@ -40,7 +60,7 @@ function MvpManager()
 	this.getProjection = function()
 	{
 		return this._projection;
-	}
+	};
 
 	this.getMvp = function()
 	{
