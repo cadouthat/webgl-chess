@@ -46,5 +46,6 @@ $(window).ready(function(){
 		{
 			cam.zoom(1.1);
 		}
+		return false;
 	});
 });
