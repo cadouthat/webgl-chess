@@ -53,7 +53,5 @@ function resize()
 	gl.viewport(0, 0, canvas.width, canvas.height);
 
 	//Adjust perspective matrix
-	var persp = mat4.create();
-	mat4.perspective(persp, DEFAULT_FOV, canvas.width / canvas.height, NEAR_DIST, FAR_DIST);
-	mvp.setProjection(persp);
+	mvp.setProjection(mat4.perspective(DEFAULT_FOV, canvas.width / canvas.height, NEAR_DIST, FAR_DIST));
 }

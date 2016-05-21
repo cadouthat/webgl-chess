@@ -68,7 +68,7 @@ function calcSmoothNormals(orig)
 	var normals = [];
 	for(var i = 0; i < orig["positions"].length / 3; i++)
 	{
-		normals.push(vec3.create());
+		normals.push(new vec3());
 	}
 
 	//Process each face in draw list
@@ -80,15 +80,14 @@ function calcSmoothNormals(orig)
 		for(var j = 0; j < 3; j++)
 		{
 			iv[j] = orig["draw"][i + j] * 3;
-			v.push(vec3.fromValues(orig["positions"][iv[j]], orig["positions"][iv[j] + 1], orig["positions"][iv[j] + 2]));
+			v.push(new vec3(orig["positions"][iv[j]], orig["positions"][iv[j] + 1], orig["positions"][iv[j] + 2]));
 		}
 		//The normal for this face is the cross product of the edges
-		var n = vec3.cross(vec3.create(), vec3.sub(vec3.create(), v[1], v[0]), vec3.sub(vec3.create(), v[2], v[0]));
-		vec3.normalize(n, n);
+		var n = v[1].sub(v[0]).cross(v[2].sub(v[0])).normalize();
 		//Add to the sum for each vertex involved
 		for(var j = 0; j < 3; j++)
 		{
-			vec3.add(normals[orig["draw"][i + j]], normals[orig["draw"][i + j]], n);
+			normals[orig["draw"][i + j]].addIn(n);
 		}
 	}
 
@@ -96,8 +95,7 @@ function calcSmoothNormals(orig)
 	var vert_normals = [];
 	for(var i = 0; i < normals.length; i++)
 	{
-		vec3.normalize(normals[i], normals[i]);
-		vert_normals.push.apply(vert_normals, normals[i]);
+		vert_normals.push.apply(vert_normals, normals[i].normalize().asArray());
 	}
 
 	//Add result to object
@@ -116,11 +114,10 @@ function calcFlatNormals(orig)
 		for(var j = 0; j < 3; j++)
 		{
 			iv[j] = orig["draw"][i + j] * 3;
-			v.push(vec3.fromValues(orig["positions"][iv[j]], orig["positions"][iv[j] + 1], orig["positions"][iv[j] + 2]));
+			v.push(new vec3(orig["positions"][iv[j]], orig["positions"][iv[j] + 1], orig["positions"][iv[j] + 2]));
 		}
 		//The normal for this face is the cross product of the edges
-		var n = vec3.cross(vec3.create(), vec3.sub(vec3.create(), v[1], v[0]), vec3.sub(vec3.create(), v[2], v[0]));
-		vec3.normalize(n, n);
+		var n = v[1].sub(v[0]).cross(v[2].sub(v[0])).normalize();
 		normals.push(n);
 	}
 
@@ -128,7 +125,7 @@ function calcFlatNormals(orig)
 	var face_normals = [];
 	for(var i = 0; i < normals.length; i++)
 	{
-		face_normals.push.apply(face_normals, normals[i]);
+		face_normals.push.apply(face_normals, normals[i].asArray());
 	}
 
 	//Add result to object

@@ -1,11 +1,11 @@
 function MvpManager()
 {
 	//Cached model-view-projection matrix
-	this._mvp = mat4.create();
+	this._mvp = new mat4();
 	//Component matrices
-	this._model = mat4.create();
-	this._view = mat4.create();
-	this._projection = mat4.create();
+	this._model = new mat4();
+	this._view = new mat4();
+	this._projection = new mat4();
 	//Stack for model matrix history
 	this._modelStack = [];
 	//Track cached value staleness
@@ -13,18 +13,24 @@ function MvpManager()
 
 	this.setModel = function(mat)
 	{
-		mat4.copy(this._model, mat);
+		this._model.copyFrom(mat);
 		this._stale = true;
 	};
 
 	this.pushModel = function()
 	{
-		this._modelStack.push(mat4.clone(this._model));
+		this._modelStack.push(this._model.clone());
+	};
+
+	this.multModel = function(mat)
+	{
+		this._model.multiplyBy(mat);
+		this._stale = true;
 	};
 
 	this.popModel = function()
 	{
-		mat4.copy(this._model, this._modelStack.pop());
+		this._model.copyFrom(this._modelStack.pop());
 		this._stale = true;
 	};
 
@@ -33,16 +39,9 @@ function MvpManager()
 		return this._model;
 	};
 
-	//Signals that the returned matrix will be modified in-place
-	this.getMutableModel = function()
-	{
-		this._stale = true;
-		return this.getModel();
-	};
-
 	this.setView = function(mat)
 	{
-		mat4.copy(this._view, mat);
+		this._view.copyFrom(mat);
 		this._stale = true;
 	};
 
@@ -53,7 +52,7 @@ function MvpManager()
 
 	this.setProjection = function(mat)
 	{
-		mat4.copy(this._projection, mat);
+		this._projection.copyFrom(mat);
 		this._stale = true;
 	};
 
@@ -67,8 +66,9 @@ function MvpManager()
 		//Update cached value if stale
 		if(this._stale)
 		{
-			mat4.multiply(this._mvp, this._projection, this._view);
-			mat4.multiply(this._mvp, this._mvp, this._model);
+			this._mvp.copyFrom(this._projection);
+			this._mvp.multiplyBy(this._view);
+			this._mvp.multiplyBy(this._model);
 			this._stale = false;
 		}
 		return this._mvp;

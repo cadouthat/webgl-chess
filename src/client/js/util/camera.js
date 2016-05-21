@@ -4,9 +4,9 @@ function Camera()
 	this._smoothRate = 4;
 
 	//Cached matrix for lookAt calculations
-	this._lookAt = mat4.create();
+	this._lookAt = new mat4();
 	//Cached eye position
-	this._eye = vec3.create();
+	this._eye = new vec3();
 	//Distance from origin
 	this._distance = 10;
 	//Desired distance from origin (will be animated)
@@ -23,11 +23,13 @@ function Camera()
 		//Update cached values if stale
 		if(this._stale)
 		{
-			var origin = [0, 0, 0];
-			var eye_start = vec3.fromValues(0, 0, this._distance);
-			vec3.rotateX(this._eye, eye_start, origin, this._theta);
-			vec3.rotateY(this._eye, this._eye, origin, this._phi);
-			mat4.lookAt(this._lookAt, this._eye, origin, [0, 1, 0]);
+			var origin = new vec3(0, 0, 0);
+			var xAxis = new vec3(1, 0, 0);
+			var yAxis = new vec3(0, 1, 0);
+			var eye_start = new vec3(0, 0, this._distance);
+			this._eye = mat4.rotate(xAxis, this._theta).transform(eye_start);
+			this._eye = mat4.rotate(yAxis, this._phi).transform(this._eye);
+			this._lookAt.loadLookAt(this._eye, origin, yAxis);
 			this._stale = false;
 		}
 	}

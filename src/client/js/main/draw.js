@@ -44,16 +44,16 @@ function drawBoard()
 
 	//Each segment is 2 spaces wide
 	var sectWidth = 2 * BOARD_SCALE * 2 / BOARD_ROW_COUNT;
-	var pos = vec3.create();
+	var pos = new vec3();
 	for(var ix = 0; ix < BOARD_ROW_COUNT / 2; ix++)
 	{
-		pos[0] = ix * sectWidth - BOARD_SCALE;
+		pos.x = ix * sectWidth - BOARD_SCALE;
 		for(var iy = 0; iy < BOARD_ROW_COUNT / 2; iy++)
 		{
-			pos[2] = iy * sectWidth - BOARD_SCALE;
+			pos.z = iy * sectWidth - BOARD_SCALE;
 			//Translate and draw segment
 			mvp.pushModel();
-			mat4.translate(mvp.getMutableModel(), mvp.getModel(), pos);
+			mvp.multModel(mat4.translate(pos));
 			drawModel(mdl_board);
 			mvp.popModel();
 		}
@@ -65,16 +65,16 @@ function drawPiece(piece)
 {
 	//Get piece position
 	var npos = piece.getNormalizedPosition();
-	var pos3 = vec3.fromValues(npos[0] * BOARD_SCALE, 0, npos[1] * BOARD_SCALE);
+	var pos3 = new vec3(npos[0] * BOARD_SCALE, 0, npos[1] * BOARD_SCALE);
 
 	//Translate to final position
 	mvp.pushModel();
-	mat4.translate(mvp.getMutableModel(), mvp.getModel(), pos3);
+	mvp.multModel(mat4.translate(pos3));
 
 	//Black pieces need to be flipped around
 	if(piece.owner == "black")
 	{
-		mat4.rotateY(mvp.getMutableModel(), mvp.getModel(), Math.PI);
+		mvp.multModel(mat4.rotate(new vec3(0, 1, 0), Math.PI));
 	}
 
 	//Draw the piece model for this type
