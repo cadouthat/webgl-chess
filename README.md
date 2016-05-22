@@ -1,5 +1,5 @@
 # WebGL Chess
-Thanks for visiting! I created this project to get familiar with WebGL. If you'd like to play, the game is hosted here: (link coming soon)
+Thanks for visiting! I created this project to get familiar with WebGL. [Click here to play](http://steelcastle.biz/webgl-chess/)
 
 ---
 
