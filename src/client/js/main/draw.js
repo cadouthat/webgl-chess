@@ -4,7 +4,7 @@ function draw(msTime)
 
 	//Update view
 	mvp.setView(cam.getLookAt());
-	gl.uniform3fv(main_shader.uniform.eye, cam.getEye());
+	gl.uniform3fv(main_shader.uniform.eye, cam.getEye().asArray());
 
 	//Draw chess board
 	drawBoard();

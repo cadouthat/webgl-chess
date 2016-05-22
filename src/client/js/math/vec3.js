@@ -24,14 +24,14 @@ var vec3 = function()
 vec3.prototype.clone = function()
 {
 	return new vec3(this.x, this.y, this.z);
-}
+};
 vec3.prototype.asArray = function()
 {
 	return [this.x, this.y, this.z];
 };
 vec3.prototype.len = function()
 {
-	return Math.sqrt(Math.pow(this.x, 2), Math.pow(this.y, 2), Math.pow(this.z, 2));
+	return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2) + Math.pow(this.z, 2));
 };
 vec3.prototype.normalize = function()
 {
