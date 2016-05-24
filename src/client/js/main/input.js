@@ -10,11 +10,13 @@ $(window).ready(function(){
 		lastMouseX = event.pageX;
 		lastMouseY = event.pageY;
 
-		if(mouseRB > 0)
+		if(mouseRB)
 		{
 			cam.pan(-dx / 200);
 			cam.tilt(-dy / 200);
 		}
+
+		updateHover();
 	});
 	$(document).mousedown(function(event){
 		switch(event.which)

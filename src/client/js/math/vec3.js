@@ -96,5 +96,5 @@ vec3.prototype.angle = function(vec)
 	if(thisLen == 0) return 0;
 	var vecLen = vec.len();
 	if(vecLen == 0) return 0;
-	return Math.acos(this.dot(b) / thisLen / vecLen);
+	return Math.acos(this.dot(vec) / thisLen / vecLen);
 };

@@ -10,6 +10,31 @@ function inflateModel(orig)
 		calcSmoothNormals(orig);
 	}
 
+	//Loop over vertices to compute bounding box
+	var minPoint = new vec3();
+	var maxPoint = new vec3();
+	for(var i = 0; i < orig["positions"].length; i += 3)
+	{
+		var x = orig["positions"][i + 0];
+		var y = orig["positions"][i + 1];
+		var z = orig["positions"][i + 2];
+		if(i == 0)
+		{
+			minPoint.x = maxPoint.x = x;
+			minPoint.y = maxPoint.y = y;
+			minPoint.z = maxPoint.z = z;
+		}
+		else
+		{
+			minPoint.x = Math.min(minPoint.x, x);
+			minPoint.y = Math.min(minPoint.y, y);
+			minPoint.z = Math.min(minPoint.z, z);
+			maxPoint.x = Math.max(maxPoint.x, x);
+			maxPoint.y = Math.max(maxPoint.y, y);
+			maxPoint.z = Math.max(maxPoint.z, z);
+		}
+	}
+
 	//Loop over draw indices
 	for(var i = 0; i < numVerts; i++)
 	{
@@ -58,7 +83,9 @@ function inflateModel(orig)
 		"positions": buf_positions,
 		"normals": buf_normals,
 		"uvs": buf_uvs,
-		"numVerts": numVerts
+		"numVerts": numVerts,
+		"minPoint": minPoint,
+		"maxPoint": maxPoint
 	};
 }
 
