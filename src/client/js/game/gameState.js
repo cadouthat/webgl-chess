@@ -38,8 +38,22 @@ function ChessGame()
 	//Game is over
 	this.checkmate = false;
 
+	//Find the piece at position (if any)
+	this.pieceAt = function(pos)
+	{
+		for(var i = 0; i < this.pieces.length; i++)
+		{
+			if(this.pieces[i].position[0] == pos[0] &&
+				this.pieces[i].position[1] == pos[1])
+			{
+				return this.pieces[i];
+			}
+		}
+		return null;
+	};
+
 	//Shorthand helper for adding a row of pieces
-	this.addRow = function(owner, row, types)
+	this._addRow = function(owner, row, types)
 	{
 		var iRow = row - 1;
 		for(var iCol = 0; iCol < BOARD_ROW_COUNT; iCol++)
@@ -51,8 +65,8 @@ function ChessGame()
 	};
 
 	//Load initial board layout
-	this.addRow("white", 1, ["rook", "knight", "bishop", "king", "queen", "bishop", "knight", "rook"]);
-	this.addRow("white", 2, "pawn");
-	this.addRow("black", 7, "pawn");
-	this.addRow("black", 8, ["rook", "knight", "bishop", "king", "queen", "bishop", "knight", "rook"]);
+	this._addRow("white", 1, ["rook", "knight", "bishop", "king", "queen", "bishop", "knight", "rook"]);
+	this._addRow("white", 2, "pawn");
+	this._addRow("black", 7, "pawn");
+	this._addRow("black", 8, ["rook", "knight", "bishop", "king", "queen", "bishop", "knight", "rook"]);
 }

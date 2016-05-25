@@ -1,3 +1,6 @@
+var glowFb = null;
+var glowTex = null;
+
 function draw(msTime)
 {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -29,10 +32,84 @@ function draw(msTime)
 		}
 	}
 
+	var glowPiece = hoverSpace ? game.pieceAt(hoverSpace) : null;
+	if(glowPiece)
+	{
+		//Initialize and bind framebuffer
+		if(glowFb == null)
+		{
+			//Initialize the framebuffer
+			glowFb = gl.createFramebuffer();
+			gl.bindFramebuffer(gl.FRAMEBUFFER, glowFb);
+			//Fixed width/height is sufficient for a glow effect
+			glowFb.width = 512;
+			glowFb.height = 512;
+			//Initialize texture to store frame colors
+			glowTex = gl.createTexture();
+			gl.bindTexture(gl.TEXTURE_2D, glowTex);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, glowFb.width, glowFb.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, glowTex, 0);
+			gl.bindTexture(gl.TEXTURE_2D, null);
+		}
+		else
+		{
+			//Bind the previously created framebuffer
+			gl.bindFramebuffer(gl.FRAMEBUFFER, glowFb);
+		}
+		//Draw as flat white
+		gl.disable(gl.DEPTH_TEST);
+		gl.useProgram(blank_shader.program);
+		//Render piece to framebuffer
+		drawPiece(glowPiece, blank_shader);
+		//Unbind framebuffer
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		//Render texture to screen with blending
+		gl.enable(gl.BLEND);
+		gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+		gl.useProgram(screen_shader.program);
+		gl.bindTexture(gl.TEXTURE_2D, glowTex);
+		drawScreenOverlay();
+		//Clear the framebuffer
+		gl.bindFramebuffer(gl.FRAMEBUFFER, glowFb);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		//Restore normal drawing mode
+		gl.disable(gl.BLEND);
+		gl.enable(gl.DEPTH_TEST);
+		gl.useProgram(main_shader.program);
+	}
+
 	//Progress game time
 	update(msTime);
 
 	window.requestAnimationFrame(draw);
+}
+
+//Draws a texture over the entire screen
+function drawScreenOverlay()
+{
+	if(!drawScreenOverlay.buf)
+	{
+		//Initialize buffer data for corners
+		drawScreenOverlay.buf = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, drawScreenOverlay.buf);
+		gl.bufferData(gl.ARRAY_BUFFER,
+			new Float32Array([
+				-1, -1,
+				-1, 1,
+				1, 1,
+				1, 1,
+				1, -1,
+				-1, -1 ]),
+			gl.STATIC_DRAW);
+	}
+
+	//Bind the data and draw two triangles
+	gl.bindBuffer(gl.ARRAY_BUFFER, drawScreenOverlay.buf);
+	gl.vertexAttribPointer(screen_shader.attrib.pos, 2, gl.FLOAT, false, 0, 0);
+	gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
 var BOARD_SCALE = 5.82;
@@ -61,7 +138,7 @@ function drawBoard()
 }
 
 //Draw a specific chess piece
-function drawPiece(piece)
+function drawPiece(piece, shader)
 {
 	//Get piece position
 	var npos = piece.getNormalizedPosition();
@@ -78,7 +155,7 @@ function drawPiece(piece)
 	}
 
 	//Draw the piece model for this type
-	drawModel(piece_models[piece.type]);
+	drawModel(piece_models[piece.type], shader);
 
 	//Restore model matrix
 	mvp.popModel();

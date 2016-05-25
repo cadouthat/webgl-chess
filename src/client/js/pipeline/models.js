@@ -181,21 +181,29 @@ function loadTexture(id)
 	return tex;
 }
 
-function drawModel(mdl)
+function drawModel(mdl, shader)
 {
+	if(!shader) shader = main_shader;
+
 	//Update matrices
-	gl.uniformMatrix4fv(main_shader.uniform.model, false, mvp.getModel().asArray());
-	gl.uniformMatrix4fv(main_shader.uniform.mvp, false, mvp.getMvp().asArray());
+	gl.uniformMatrix4fv(shader.uniform.model, false, mvp.getModel().asArray());
+	gl.uniformMatrix4fv(shader.uniform.mvp, false, mvp.getMvp().asArray());
 
 	//Bind and point to attribute arrays
 	gl.bindBuffer(gl.ARRAY_BUFFER, mdl["positions"]);
-	gl.vertexAttribPointer(main_shader.attrib.pos, 3, gl.FLOAT, false, 0, 0);
+	gl.vertexAttribPointer(shader.attrib.pos, 3, gl.FLOAT, false, 0, 0);
 
-	gl.bindBuffer(gl.ARRAY_BUFFER, mdl["normals"]);
-	gl.vertexAttribPointer(main_shader.attrib.norm, 3, gl.FLOAT, false, 0, 0);
+	if(shader.attrib.norm != undefined)
+	{
+		gl.bindBuffer(gl.ARRAY_BUFFER, mdl["normals"]);
+		gl.vertexAttribPointer(shader.attrib.norm, 3, gl.FLOAT, false, 0, 0);
+	}
 
-	gl.bindBuffer(gl.ARRAY_BUFFER, mdl["uvs"]);
-	gl.vertexAttribPointer(main_shader.attrib.uv, 2, gl.FLOAT, false, 0, 0);
+	if(shader.attrib.uv != undefined)
+	{
+		gl.bindBuffer(gl.ARRAY_BUFFER, mdl["uvs"]);
+		gl.vertexAttribPointer(shader.attrib.uv, 2, gl.FLOAT, false, 0, 0);
+	}
 
 	//Draw all vertices as triangles
 	gl.drawArrays(gl.TRIANGLES, 0, mdl["numVerts"]);

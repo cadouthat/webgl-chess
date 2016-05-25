@@ -18,6 +18,6 @@ void main()
 	frag_norm = normalize(vec3(model * vec4(norm, 0)));
 	frag_uv = uv;
 
-	//Fragment position in screen space
+	//Output position in screen space
 	gl_Position = mvp * vec4(pos, 1);
 }
