@@ -58,6 +58,8 @@ function draw(msTime)
 			//Bind the previously created framebuffer
 			gl.bindFramebuffer(gl.FRAMEBUFFER, glowFb);
 		}
+		//Switch to framebuffer viewport
+		gl.viewport(0, 0, glowFb.width, glowFb.height);
 		//Draw as flat white
 		gl.disable(gl.DEPTH_TEST);
 		gl.useProgram(blank_shader.program);
@@ -65,6 +67,7 @@ function draw(msTime)
 		drawPiece(glowPiece, blank_shader);
 		//Unbind framebuffer
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.viewport(0, 0, canvas.width, canvas.height);
 		//Render texture to screen with blending
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -99,17 +102,15 @@ function drawScreenOverlay()
 			new Float32Array([
 				-1, -1,
 				-1, 1,
-				1, 1,
-				1, 1,
 				1, -1,
-				-1, -1 ]),
+				1, 1 ]),
 			gl.STATIC_DRAW);
 	}
 
 	//Bind the data and draw two triangles
 	gl.bindBuffer(gl.ARRAY_BUFFER, drawScreenOverlay.buf);
 	gl.vertexAttribPointer(screen_shader.attrib.pos, 2, gl.FLOAT, false, 0, 0);
-	gl.drawArrays(gl.TRIANGLES, 0, 6);
+	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 
 var BOARD_SCALE = 5.82;

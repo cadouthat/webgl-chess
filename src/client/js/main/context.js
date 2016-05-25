@@ -6,10 +6,11 @@ var FAR_DIST = 1000;
 var gl;
 var mvp;
 var cam;
+var canvas;
 
 function init()
 {
-	var canvas = $("#glview")[0];
+	canvas = $("#glview")[0];
 
 	//Get WebGL context
 	gl = null;
@@ -45,7 +46,6 @@ function init()
 function resize()
 {
 	//Resize canvas element (fill screen)
-	var canvas = $("#glview")[0];
 	canvas.width = $(document).width();
 	canvas.height = $(document).height();
 
