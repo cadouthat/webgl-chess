@@ -10,10 +10,33 @@ function draw(msTime)
 	mvp.setView(cam.getLookAt());
 	gl.uniform3fv(main_shader.uniform.eye, cam.getEye().asArray());
 
-	//Draw chess board
-	drawBoard();
-
 	var glowPiece = hoverSpace ? game.pieceAt(hoverSpace) : null;
+
+	if(hoverSpace && !glowPiece)
+	{
+		//Draw spaces behind glow
+		drawBoard(function(ix, iy) {
+			return ix != hoverSpace[0] || iy != hoverSpace[1];
+		});
+
+		//Draw glow for highlighted space
+		drawGlow(function() {
+			drawBoard(function(ix, iy) {
+				return ix == hoverSpace[0] && iy == hoverSpace[1];
+			}, blank_shader);
+		});
+
+		//Draw spaces in front of glow
+		drawBoard(function(ix, iy) {
+			return ix == hoverSpace[0] && iy == hoverSpace[1];
+		});
+	}
+	else
+	{
+		//Draw entire board
+		drawBoard();
+	}
+
 	if(glowPiece)
 	{
 		//Compute piece distances from camera
@@ -25,13 +48,17 @@ function draw(msTime)
 		//Draw pieces behind glow
 		drawPieces(function(x){ return x.viewDistance > glowPiece.viewDistance; });
 
-		drawPieceGlow(glowPiece);
+		//Draw glow for highlighted piece
+		drawGlow(function() {
+			drawPiece(glowPiece, blank_shader);
+		});
 
 		//Draw pieces in front of glow
 		drawPieces(function(x){ return x.viewDistance <= glowPiece.viewDistance; });
 	}
 	else
 	{
+		//Draw all pieces
 		drawPieces();
 	}
 
@@ -66,7 +93,19 @@ function drawPieces(filter)
 	}
 }
 
-function drawPieceGlow(piece)
+function createFramebufferTex(framebuffer)
+{
+	var tex = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, tex);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, framebuffer.width, framebuffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+	return tex;
+}
+
+function drawGlow(drawBlanks)
 {
 	//Initialize and bind framebuffer
 	if(glowFb == null)
@@ -78,18 +117,8 @@ function drawPieceGlow(piece)
 		glowFb.width = 512;
 		glowFb.height = 512;
 		//Initialize textures to store frame colors
-		glowTex = gl.createTexture();
-		gl.bindTexture(gl.TEXTURE_2D, glowTex);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, glowFb.width, glowFb.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-
-		glowSwapTex = gl.createTexture();
-		gl.bindTexture(gl.TEXTURE_2D, glowSwapTex);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, glowFb.width, glowFb.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, glowSwapTex, 0);
+		glowTex = createFramebufferTex(glowFb);
+		glowSwapTex = createFramebufferTex(glowFb);
 	}
 	else
 	{
@@ -103,8 +132,8 @@ function drawPieceGlow(piece)
 	//Draw as flat white
 	gl.disable(gl.DEPTH_TEST);
 	gl.useProgram(blank_shader.program);
-	//Render piece slightly larger than normal
-	drawPiece(piece, blank_shader);
+	//Render desired shapes
+	drawBlanks();
 	//Swap framebuffer textures
 	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, glowSwapTex, 0);
 	gl.bindTexture(gl.TEXTURE_2D, glowTex);
@@ -152,28 +181,52 @@ function drawScreenOverlay()
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 
-var BOARD_SCALE = 5.82;
-
-function drawBoard()
+function drawBoardSegment(ix, iy, shader)
 {
-	//Bind board texture
-	gl.bindTexture(gl.TEXTURE_2D, tex_mixed_marble);
+	if(!shader) shader = main_shader;
 
-	//Each segment is 2 spaces wide
-	var sectWidth = 2 * BOARD_SCALE * 2 / BOARD_ROW_COUNT;
-	var pos = new vec3();
-	for(var ix = 0; ix < BOARD_ROW_COUNT / 2; ix++)
+	var pos = game.getSpaceWorldPosition([ix, iy]);
+	//Use texture offsets for variation
+	if(shader.uniform.uvOffset)
 	{
-		pos.x = ix * sectWidth - BOARD_SCALE;
-		for(var iy = 0; iy < BOARD_ROW_COUNT / 2; iy++)
+		gl.uniform2fv(shader.uniform.uvOffset, [(ix % 4) * 0.25, (iy % 4) * 0.25]);
+	}
+	//Translate and draw segment
+	mvp.pushModel();
+	mvp.multModel(mat4.translate(pos));
+	drawModel(mdl_board, shader);
+	mvp.popModel();
+}
+
+function drawBoard(filter, shader)
+{
+	if(!filter) filter = function() { return true; };
+	if(!shader) shader = main_shader;
+
+	//Draw white sections
+	gl.bindTexture(gl.TEXTURE_2D, tex_white_marble);
+	for(var ix = 0; ix < BOARD_ROW_COUNT; ix++)
+	{
+		for(var iy = ix % 2; iy < BOARD_ROW_COUNT; iy += 2)
 		{
-			pos.z = iy * sectWidth - BOARD_SCALE;
-			//Translate and draw segment
-			mvp.pushModel();
-			mvp.multModel(mat4.translate(pos));
-			drawModel(mdl_board);
-			mvp.popModel();
+			if(filter(ix, iy)) drawBoardSegment(ix, iy, shader);
 		}
+	}
+
+	//Draw black sections
+	gl.bindTexture(gl.TEXTURE_2D, tex_black_marble);
+	for(var ix = 0; ix < BOARD_ROW_COUNT; ix++)
+	{
+		for(var iy = (ix + 1) % 2; iy < BOARD_ROW_COUNT; iy += 2)
+		{
+			if(filter(ix, iy)) drawBoardSegment(ix, iy, shader);
+		}
+	}
+
+	//Reset texture offset
+	if(shader.uniform.uvOffset)
+	{
+		gl.uniform2fv(shader.uniform.uvOffset, [0, 0]);
 	}
 }
 

@@ -1,5 +1,6 @@
 //Helpful chess constants
-var BOARD_ROW_COUNT = 8;
+const BOARD_ROW_COUNT = 8;
+const BOARD_SCALE = 5.82;
 
 //Represents a player's chess piece
 function ChessPiece(owner, type, position)
@@ -57,6 +58,15 @@ function ChessGame()
 			}
 		}
 		return null;
+	};
+
+	//Get position of a board space in world space
+	this.getSpaceWorldPosition = function(pos) {
+		const spaceWidth = BOARD_SCALE * 2 / BOARD_ROW_COUNT;
+		return new vec3(
+			(pos[0] + 0.5) * spaceWidth - BOARD_SCALE,
+			0,
+			(pos[1] + 0.5) * spaceWidth - BOARD_SCALE);
 	};
 
 	//Shorthand helper for adding a row of pieces

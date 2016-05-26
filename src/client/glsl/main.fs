@@ -8,6 +8,7 @@ varying vec2 frag_uv;
 
 uniform vec3 eye;
 uniform sampler2D tex;
+uniform vec2 uvOffset;
 
 float ambient = 0.4;
 vec3 light[3];
@@ -17,7 +18,7 @@ float specPower = 96.0;
 void main()
 {
 	//Sample texture for diffuse color
-	vec3 color_diffuse = vec3(texture2D(tex, frag_uv));
+	vec3 color_diffuse = vec3(texture2D(tex, frag_uv + uvOffset));
 
 	//Specular is pure white
 	vec3 color_specular = vec3(1.0);

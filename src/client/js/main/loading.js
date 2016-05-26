@@ -14,5 +14,4 @@ function loadModels()
 	//Load textures
 	tex_white_marble = loadTexture("white_marble");
 	tex_black_marble = loadTexture("black_marble");
-	tex_mixed_marble = loadTexture("mixed_marble");
 }

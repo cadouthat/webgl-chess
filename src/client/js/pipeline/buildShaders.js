@@ -68,6 +68,7 @@ function buildShaders()
 	main_shader.uniform.mvp = gl.getUniformLocation(main_shader.program, "mvp");
 	main_shader.uniform.model = gl.getUniformLocation(main_shader.program, "model");
 	main_shader.uniform.eye = gl.getUniformLocation(main_shader.program, "eye");
+	main_shader.uniform.uvOffset = gl.getUniformLocation(main_shader.program, "uvOffset");
 
 	gl.useProgram(blank_shader.program);
 	blank_shader.attrib.pos = enableShaderAttrib(blank_shader.program, "pos");

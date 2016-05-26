@@ -59,5 +59,5 @@ void main()
 		result += texture2D(tex, pos).a * 0.028532;
 	}
 
-	gl_FragColor = vec4(color * result, result);
+	gl_FragColor = vec4(clamp(color * result, 0.0, 1.0), result);
 }
