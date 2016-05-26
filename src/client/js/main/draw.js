@@ -1,5 +1,6 @@
 var glowFb = null;
 var glowTex = null;
+var glowSwapTex = null;
 
 function draw(msTime)
 {
@@ -12,11 +13,43 @@ function draw(msTime)
 	//Draw chess board
 	drawBoard();
 
+	var glowPiece = hoverSpace ? game.pieceAt(hoverSpace) : null;
+	if(glowPiece)
+	{
+		//Compute piece distances from camera
+		for(var i = 0; i < game.pieces.length; i++)
+		{
+			game.pieces[i].viewDistance = game.pieces[i].getWorldPosition().sub(cam.getEye()).len();
+		}
+
+		//Draw pieces behind glow
+		drawPieces(function(x){ return x.viewDistance > glowPiece.viewDistance; });
+
+		drawPieceGlow(glowPiece);
+
+		//Draw pieces in front of glow
+		drawPieces(function(x){ return x.viewDistance <= glowPiece.viewDistance; });
+	}
+	else
+	{
+		drawPieces();
+	}
+
+	//Progress game time
+	update(msTime);
+
+	window.requestAnimationFrame(draw);
+}
+
+function drawPieces(filter)
+{
+	if(!filter) filter = function() { return true; };
+
 	//Draw white chess pieces
 	gl.bindTexture(gl.TEXTURE_2D, tex_white_marble);
 	for(var i = 0; i < game.pieces.length; i++)
 	{
-		if(game.pieces[i].owner == "white")
+		if(game.pieces[i].owner == "white" && filter(game.pieces[i]))
 		{
 			drawPiece(game.pieces[i]);
 		}
@@ -26,68 +59,74 @@ function draw(msTime)
 	gl.bindTexture(gl.TEXTURE_2D, tex_black_marble);
 	for(var i = 0; i < game.pieces.length; i++)
 	{
-		if(game.pieces[i].owner == "black")
+		if(game.pieces[i].owner == "black" && filter(game.pieces[i]))
 		{
 			drawPiece(game.pieces[i]);
 		}
 	}
+}
 
-	var glowPiece = hoverSpace ? game.pieceAt(hoverSpace) : null;
-	if(glowPiece)
+function drawPieceGlow(piece)
+{
+	//Initialize and bind framebuffer
+	if(glowFb == null)
 	{
-		//Initialize and bind framebuffer
-		if(glowFb == null)
-		{
-			//Initialize the framebuffer
-			glowFb = gl.createFramebuffer();
-			gl.bindFramebuffer(gl.FRAMEBUFFER, glowFb);
-			//Fixed width/height is sufficient for a glow effect
-			glowFb.width = 512;
-			glowFb.height = 512;
-			//Initialize texture to store frame colors
-			glowTex = gl.createTexture();
-			gl.bindTexture(gl.TEXTURE_2D, glowTex);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, glowFb.width, glowFb.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, glowTex, 0);
-			gl.bindTexture(gl.TEXTURE_2D, null);
-		}
-		else
-		{
-			//Bind the previously created framebuffer
-			gl.bindFramebuffer(gl.FRAMEBUFFER, glowFb);
-		}
-		//Switch to framebuffer viewport
-		gl.viewport(0, 0, glowFb.width, glowFb.height);
-		//Draw as flat white
-		gl.disable(gl.DEPTH_TEST);
-		gl.useProgram(blank_shader.program);
-		//Render piece to framebuffer
-		drawPiece(glowPiece, blank_shader);
-		//Unbind framebuffer
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.viewport(0, 0, canvas.width, canvas.height);
-		//Render texture to screen with blending
-		gl.enable(gl.BLEND);
-		gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-		gl.useProgram(screen_shader.program);
-		gl.bindTexture(gl.TEXTURE_2D, glowTex);
-		drawScreenOverlay();
-		//Clear the framebuffer
+		//Initialize the framebuffer
+		glowFb = gl.createFramebuffer();
 		gl.bindFramebuffer(gl.FRAMEBUFFER, glowFb);
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		//Restore normal drawing mode
-		gl.disable(gl.BLEND);
-		gl.enable(gl.DEPTH_TEST);
-		gl.useProgram(main_shader.program);
+		//Fixed width/height is sufficient for a glow effect
+		glowFb.width = 512;
+		glowFb.height = 512;
+		//Initialize textures to store frame colors
+		glowTex = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, glowTex);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, glowFb.width, glowFb.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+		glowSwapTex = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, glowSwapTex);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, glowFb.width, glowFb.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, glowSwapTex, 0);
 	}
-
-	//Progress game time
-	update(msTime);
-
-	window.requestAnimationFrame(draw);
+	else
+	{
+		//Bind the previously created framebuffer
+		gl.bindFramebuffer(gl.FRAMEBUFFER, glowFb);
+	}
+	//Draw to framebuffer
+	gl.viewport(0, 0, glowFb.width, glowFb.height);
+	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, glowTex, 0);
+	gl.clear(gl.COLOR_BUFFER_BIT);
+	//Draw as flat white
+	gl.disable(gl.DEPTH_TEST);
+	gl.useProgram(blank_shader.program);
+	//Render piece slightly larger than normal
+	drawPiece(piece, blank_shader);
+	//Swap framebuffer textures
+	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, glowSwapTex, 0);
+	gl.bindTexture(gl.TEXTURE_2D, glowTex);
+	//Blur X
+	gl.useProgram(blur_shader.program);
+	gl.uniform3fv(blur_shader.uniform.color, new vec3(0.412, 0.98, 0.427).scaleIn(2).asArray());
+	gl.uniform1i(blur_shader.uniform.blurDirection, 0);
+	gl.uniform2fv(blur_shader.uniform.texSize, new Float32Array([glowFb.width, glowFb.height]));
+	drawScreenOverlay();
+	//Unbind framebuffer
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	gl.viewport(0, 0, canvas.width, canvas.height);
+	//Blur Y and blend onto screen
+	gl.enable(gl.BLEND);
+	gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+	gl.uniform1i(blur_shader.uniform.blurDirection, 1);
+	gl.bindTexture(gl.TEXTURE_2D, glowSwapTex);
+	drawScreenOverlay();
+	//Restore normal drawing mode
+	gl.disable(gl.BLEND);
+	gl.enable(gl.DEPTH_TEST);
+	gl.useProgram(main_shader.program);
 }
 
 //Draws a texture over the entire screen
@@ -141,13 +180,9 @@ function drawBoard()
 //Draw a specific chess piece
 function drawPiece(piece, shader)
 {
-	//Get piece position
-	var npos = piece.getNormalizedPosition();
-	var pos3 = new vec3(npos[0] * BOARD_SCALE, 0, npos[1] * BOARD_SCALE);
-
 	//Translate to final position
 	mvp.pushModel();
-	mvp.multModel(mat4.translate(pos3));
+	mvp.multModel(mat4.translate(piece.getWorldPosition()));
 
 	//Black pieces need to be flipped around
 	if(piece.owner == "black")

@@ -22,6 +22,13 @@ function ChessPiece(owner, type, position)
 		y = y * 2 - 1;
 		return [x, y];
 	};
+
+	//Get position in 3D world space
+	this.getWorldPosition = function()
+	{
+		var npos = this.getNormalizedPosition();
+		return new vec3(npos[0] * BOARD_SCALE, 0, npos[1] * BOARD_SCALE);
+	};
 }
 
 //Represents the state of a game of chess at a single point in time

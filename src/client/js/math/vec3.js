@@ -76,7 +76,7 @@ vec3.prototype.sub = function(vec)
 };
 vec3.prototype.scale = function(scalar)
 {
-	return this.clone().subIn(vec);
+	return this.clone().scaleIn(scalar);
 };
 vec3.prototype.cross = function(vec)
 {

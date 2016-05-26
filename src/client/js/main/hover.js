@@ -21,9 +21,8 @@ function updateHover()
 	{
 		var piece = game.pieces[i];
 		var mdl = piece_models[piece.type];
-		var npos = piece.getNormalizedPosition();
 		//Get world position
-		var base = new vec3(npos[0] * BOARD_SCALE, 0, npos[1] * BOARD_SCALE);
+		var base = piece.getWorldPosition();
 		var top = base.add(new vec3(0, mdl.maxPoint.y, 0));
 		//Approximate radius with largest horizontal dimension
 		var rad = [mdl.minPoint.x, mdl.minPoint.z, mdl.maxPoint.x, mdl.maxPoint.z].reduce(function(prev, cur){

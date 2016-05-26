@@ -40,6 +40,14 @@ mat4.prototype.loadTranslate = function(vec)
 	this.values[3 * 4 + 2] = vec.z;
 	return this;
 };
+mat4.prototype.loadScale = function(vec)
+{
+	this.loadIdentity();
+	this.values[0 * 4 + 0] = vec.x;
+	this.values[1 * 4 + 1] = vec.y;
+	this.values[2 * 4 + 2] = vec.z;
+	return this;
+};
 mat4.prototype.loadRotate = function(axis, radians)
 {
 	this.loadIdentity();
@@ -190,6 +198,10 @@ mat4._getTemp = function()
 mat4.translate = function(vec)
 {
 	return this._getTemp().loadTranslate(vec);
+};
+mat4.scale = function(vec)
+{
+	return this._getTemp().loadScale(vec);
 };
 mat4.rotate = function(axis, radians)
 {
