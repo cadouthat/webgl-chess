@@ -22,6 +22,7 @@ def copyShallow(dir, dest):
 			shutil.copy(dir + path, dest)
 
 source = "../client/"
+shared = "../server/shared/"
 release = "../../release/"
 
 # Remove previous release
@@ -41,6 +42,7 @@ tmp = release + "tmp/"
 os.mkdir(tmp)
 # Copy JS source files
 copyCollapse(source + "js/", tmp)
+copyCollapse(shared, tmp)
 copyShallow(source + "mdl/", tmp)
 
 # Create JS files from shaders
