@@ -42,7 +42,7 @@ function draw(msTime)
 		//Compute piece distances from camera
 		for(var i = 0; i < game.pieces.length; i++)
 		{
-			game.pieces[i].viewDistance = game.pieces[i].getWorldPosition().sub(cam.getEye()).len();
+			game.pieces[i].viewDistance = getSpaceWorldPosition(game.pieces[i].position).sub(cam.getEye()).len();
 		}
 
 		//Draw pieces behind glow
@@ -185,7 +185,7 @@ function drawBoardSegment(ix, iy, shader)
 {
 	if(!shader) shader = main_shader;
 
-	var pos = game.getSpaceWorldPosition([ix, iy]);
+	var pos = getSpaceWorldPosition([ix, iy]);
 	//Use texture offsets for variation
 	if(shader.uniform.uvOffset)
 	{
@@ -235,7 +235,7 @@ function drawPiece(piece, shader)
 {
 	//Translate to final position
 	mvp.pushModel();
-	mvp.multModel(mat4.translate(piece.getWorldPosition()));
+	mvp.multModel(mat4.translate(getSpaceWorldPosition(piece.position)));
 
 	//Black pieces need to be flipped around
 	if(piece.owner == "black")

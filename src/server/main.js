@@ -2,6 +2,7 @@ var http = require("http");
 var WebSocketServer = require("ws").Server;
 
 var settings = require("./shared/settings");
+var ChessGame = require("./shared/chess/ChessGame");
 
 //Set up an HTTP server with cross-origin enabled
 var httpServer = http.createServer(function(request, response) {
