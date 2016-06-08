@@ -3,10 +3,10 @@ var myColor;
 
 $(window).ready(function()
 {
-	init();
+	initGlContext();
 
 	//Initial resize to be safe
-	resize();
+	resizeCanvas();
 
 	//Set up game state
 	game = new ChessGame();
@@ -18,5 +18,5 @@ $(window).ready(function()
 
 $(window).resize(function()
 {
-	resize();
+	resizeCanvas();
 });

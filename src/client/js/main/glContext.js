@@ -8,7 +8,7 @@ var mvp;
 var cam;
 var canvas;
 
-function init()
+function initGlContext()
 {
 	canvas = $("#glview")[0];
 
@@ -43,7 +43,7 @@ function init()
 	return true;
 }
 
-function resize()
+function resizeCanvas()
 {
 	//Resize canvas element (fill screen)
 	canvas.width = $(document).width();
