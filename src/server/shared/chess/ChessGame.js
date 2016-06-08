@@ -42,6 +42,13 @@ function ChessGame()
 		}
 	};
 
+	//Top level test for making a move
+	this.canMove = function(from, to)
+	{
+		//
+		return true;
+	};
+
 	//Load initial board layout
 	this._addRow("white", 1, ["rook", "knight", "bishop", "king", "queen", "bishop", "knight", "rook"]);
 	this._addRow("white", 2, "pawn");

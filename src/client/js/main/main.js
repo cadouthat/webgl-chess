@@ -1,4 +1,5 @@
 var game;
+var myColor;
 
 $(window).ready(function()
 {
@@ -9,6 +10,7 @@ $(window).ready(function()
 
 	//Set up game state
 	game = new ChessGame();
+	myColor = "white";
 
 	//Start main draw loop
 	draw(performance.now());

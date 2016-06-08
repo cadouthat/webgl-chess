@@ -10,25 +10,23 @@ function draw(msTime)
 	mvp.setView(cam.getLookAt());
 	gl.uniform3fv(main_shader.uniform.eye, cam.getEye().asArray());
 
-	var glowPiece = hoverSpace ? game.pieceAt(hoverSpace) : null;
-
-	if(hoverSpace && !glowPiece)
+	if(glowSpace)
 	{
 		//Draw spaces behind glow
 		drawBoard(function(ix, iy) {
-			return ix != hoverSpace[0] || iy != hoverSpace[1];
+			return ix != glowSpace[0] || iy != glowSpace[1];
 		});
 
 		//Draw glow for highlighted space
 		drawGlow(function() {
 			drawBoard(function(ix, iy) {
-				return ix == hoverSpace[0] && iy == hoverSpace[1];
+				return ix == glowSpace[0] && iy == glowSpace[1];
 			}, blank_shader);
 		});
 
 		//Draw spaces in front of glow
 		drawBoard(function(ix, iy) {
-			return ix == hoverSpace[0] && iy == hoverSpace[1];
+			return ix == glowSpace[0] && iy == glowSpace[1];
 		});
 	}
 	else
@@ -37,7 +35,7 @@ function draw(msTime)
 		drawBoard();
 	}
 
-	if(glowPiece)
+	if(glowPieces.length)
 	{
 		//Compute piece distances from camera
 		for(var i = 0; i < game.pieces.length; i++)
@@ -45,52 +43,56 @@ function draw(msTime)
 			game.pieces[i].viewDistance = getSpaceWorldPosition(game.pieces[i].position).sub(cam.getEye()).len();
 		}
 
-		//Draw pieces behind glow
-		drawPieces(function(x){ return x.viewDistance > glowPiece.viewDistance; });
-
-		//Draw glow for highlighted piece
-		drawGlow(function() {
-			drawPiece(glowPiece, blank_shader);
+		//Sort pieces by distance (far first)
+		game.pieces.sort(function(a, b) {
+			return b.viewDistance - a.viewDistance;
 		});
 
-		//Draw pieces in front of glow
-		drawPieces(function(x){ return x.viewDistance <= glowPiece.viewDistance; });
+		//Draw pieces in order
+		for(var i = 0; i < game.pieces.length; i++)
+		{
+			var piece = game.pieces[i];
+
+			//If the piece is glowing, draw the glow first
+			if(glowPieces.indexOf(piece) >= 0)
+			{
+				drawGlow(function() {
+					drawPiece(piece, blank_shader);
+				});
+			}
+
+			//Bind texture and draw piece
+			gl.bindTexture(gl.TEXTURE_2D,(piece.owner == "white") ? tex_white_marble : tex_black_marble);
+			drawPiece(piece);
+		}
 	}
 	else
 	{
-		//Draw all pieces
-		drawPieces();
+		//Draw white chess pieces
+		gl.bindTexture(gl.TEXTURE_2D, tex_white_marble);
+		for(var i = 0; i < game.pieces.length; i++)
+		{
+			if(game.pieces[i].owner == "white")
+			{
+				drawPiece(game.pieces[i]);
+			}
+		}
+
+		//Draw black chess pieces
+		gl.bindTexture(gl.TEXTURE_2D, tex_black_marble);
+		for(var i = 0; i < game.pieces.length; i++)
+		{
+			if(game.pieces[i].owner == "black")
+			{
+				drawPiece(game.pieces[i]);
+			}
+		}
 	}
 
 	//Progress game time
 	update(msTime);
 
 	window.requestAnimationFrame(draw);
-}
-
-function drawPieces(filter)
-{
-	if(!filter) filter = function() { return true; };
-
-	//Draw white chess pieces
-	gl.bindTexture(gl.TEXTURE_2D, tex_white_marble);
-	for(var i = 0; i < game.pieces.length; i++)
-	{
-		if(game.pieces[i].owner == "white" && filter(game.pieces[i]))
-		{
-			drawPiece(game.pieces[i]);
-		}
-	}
-
-	//Draw black chess pieces
-	gl.bindTexture(gl.TEXTURE_2D, tex_black_marble);
-	for(var i = 0; i < game.pieces.length; i++)
-	{
-		if(game.pieces[i].owner == "black" && filter(game.pieces[i]))
-		{
-			drawPiece(game.pieces[i]);
-		}
-	}
 }
 
 function createFramebufferTex(framebuffer)

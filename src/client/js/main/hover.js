@@ -1,9 +1,32 @@
 var hoverSpace = null;
+var activeSpace = null;
+var glowSpace = null;
+var glowPieces = [];
 
 //Refresh cursor hover selection
 function updateHover()
 {
 	hoverSpace = null;
+	glowSpace = null;
+	glowPieces = [];
+
+	//No interaction if it is not my turn
+	if(game.turn != myColor)
+	{
+		activeSpace = null;
+		return;
+	}
+
+	//Active space stays highlighted
+	if(activeSpace)
+	{
+		//It should always be a piece
+		var activePiece = game.pieceAt(activeSpace);
+		if(activePiece)
+		{
+			glowPieces.push(activePiece);
+		}
+	}
 
 	//No selection while dragging
 	if(mouseRB) return;
@@ -55,6 +78,33 @@ function updateHover()
 				Math.floor(((bz / BOARD_SCALE + 1) / 2) * BOARD_ROW_COUNT)
 				];
 			uMin = u;
+		}
+	}
+
+	//Determine highlight for hover
+	if(hoverSpace)
+	{
+		var hoverPiece = game.pieceAt(hoverSpace);
+		//Highlight my own pieces to select them
+		if(hoverPiece && hoverPiece.owner == myColor)
+		{
+			glowPieces.push(hoverPiece);
+		}
+		else if(activeSpace)
+		{
+			//Highlight possible moves
+			if(game.canMove(activeSpace, hoverSpace))
+			{
+				//Highlight whatever lies at the hover location
+				if(hoverPiece)
+				{
+					glowPieces.push(hoverPiece);
+				}
+				else
+				{
+					glowSpace = hoverSpace;
+				}
+			}
 		}
 	}
 }
