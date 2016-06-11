@@ -1,15 +1,13 @@
-var piece_models = {};
-
 function loadModels()
 {
 	//Inflate models
 	mdl_board = inflateModel(src_board);
-	piece_models["king"] = inflateModel(src_king);
-	piece_models["queen"] = inflateModel(src_queen);
-	piece_models["bishop"] = inflateModel(src_bishop);
-	piece_models["knight"] = inflateModel(src_knight);
-	piece_models["rook"] = inflateModel(src_rook);
-	piece_models["pawn"] = inflateModel(src_pawn);
+	ChessKing.model = inflateModel(src_king);
+	ChessQueen.model = inflateModel(src_queen);
+	ChessBishop.model = inflateModel(src_bishop);
+	ChessKnight.model = inflateModel(src_knight);
+	ChessRook.model = inflateModel(src_rook);
+	ChessPawn.model = inflateModel(src_pawn);
 
 	//Load textures
 	tex_white_marble = loadTexture("white_marble");

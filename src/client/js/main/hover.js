@@ -1,14 +1,26 @@
 var hoverSpace = null;
 var activeSpace = null;
 var glowSpace = null;
-var glowPieces = [];
+var greenGlowColor = null;
+var whiteGlowColor = null;
 
 //Refresh cursor hover selection
 function updateHover()
 {
+	//Static color init
+	if(!greenGlowColor)
+	{
+		greenGlowColor = new vec3(0.412, 0.98, 0.427).scaleIn(2);
+		whiteGlowColor = new vec3(1.5);
+	}
+
+	//Reset hover/glow state
 	hoverSpace = null;
 	glowSpace = null;
-	glowPieces = [];
+	for(var i = 0; i < game.pieces.length; i++)
+	{
+		game.pieces[i].glowColor = null;
+	}
 
 	//No interaction if it is not my turn
 	if(game.turn != myColor)
@@ -24,7 +36,7 @@ function updateHover()
 		var activePiece = game.pieceAt(activeSpace);
 		if(activePiece)
 		{
-			glowPieces.push(activePiece);
+			activePiece.glowColor = greenGlowColor;
 		}
 	}
 
@@ -43,7 +55,7 @@ function updateHover()
 	for(var i = 0; i < game.pieces.length; i++)
 	{
 		var piece = game.pieces[i];
-		var mdl = piece_models[piece.type];
+		var mdl = piece.constructor.model;
 		//Get world position
 		var base = getSpaceWorldPosition(piece.position);
 		var top = base.add(new vec3(0, mdl.maxPoint.y, 0));
@@ -82,13 +94,13 @@ function updateHover()
 	}
 
 	//Determine highlight for hover
-	if(hoverSpace)
+	if(hoverSpace && !game.equalSpaces(hoverSpace, activeSpace))
 	{
 		var hoverPiece = game.pieceAt(hoverSpace);
 		//Highlight my own pieces to select them
 		if(hoverPiece && hoverPiece.owner == myColor)
 		{
-			glowPieces.push(hoverPiece);
+			hoverPiece.glowColor = whiteGlowColor;
 		}
 		else if(activeSpace)
 		{
@@ -98,7 +110,7 @@ function updateHover()
 				//Highlight whatever lies at the hover location
 				if(hoverPiece)
 				{
-					glowPieces.push(hoverPiece);
+					hoverPiece.glowColor = greenGlowColor;
 				}
 				else
 				{

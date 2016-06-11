@@ -87,7 +87,7 @@ function Camera()
 	this.tilt = function(d)
 	{
 		this._theta += d;
-		this._theta = Math.min(this._theta, 0);
+		this._theta = Math.min(this._theta, -Math.PI / 32);
 		this._theta = Math.max(this._theta, -Math.PI / 2);
 		this._stale = true;
 	};

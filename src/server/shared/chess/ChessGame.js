@@ -1,5 +1,10 @@
 if(typeof require != "undefined") {
-	ChessPiece = require("./ChessPiece");
+	ChessPawn = require("./ChessPawn");
+	ChessRook = require("./ChessRook");
+	ChessKnight = require("./ChessKnight");
+	ChessBishop = require("./ChessBishop");
+	ChessQueen = require("./ChessQueen");
+	ChessKing = require("./ChessKing");
 }
 
 //Represents the state of a game of chess at a single point in time
@@ -16,6 +21,35 @@ function ChessGame()
 	//Game is over
 	this.checkmate = false;
 
+	//Helper for initializing a piece
+	this._createPiece = function(owner, type, position)
+	{
+		var piece = new type();
+		piece.owner = owner;
+		piece.position = position;
+		return piece;
+	};
+
+	//Shorthand helper for adding a row of pieces
+	this._addRow = function(owner, row, types)
+	{
+		var iRow = row - 1;
+		for(var iCol = 0; iCol < 8; iCol++)
+		{
+			this.pieces.push(this._createPiece(owner, 
+				(types instanceof Array) ? types[iCol] : types,
+				[iCol, iRow]));
+		}
+	};
+
+	//Helper for comparing board spaces
+	this.equalSpaces = function(a, b)
+	{
+		if(!a && !b) return true;
+		if(!a || !b) return false;
+		return (a[0] == b[0] && a[1] == b[1]);
+	};
+
 	//Find the piece at position (if any)
 	this.pieceAt = function(pos)
 	{
@@ -30,30 +64,30 @@ function ChessGame()
 		return null;
 	};
 
-	//Shorthand helper for adding a row of pieces
-	this._addRow = function(owner, row, types)
+	//Get details for a proposed move
+	this.interpretMove = function(from, to)
 	{
-		var iRow = row - 1;
-		for(var iCol = 0; iCol < 8; iCol++)
+		//Get piece to be moved
+		var piece = this.pieceAt(from);
+		if(piece == null)
 		{
-			this.pieces.push(new ChessPiece(owner, 
-				(types instanceof Array) ? types[iCol] : types,
-				[iCol, iRow]));
+			return null;
 		}
+		//Piece objects interpret details for their type
+		return piece.interpretMove(to);
 	};
 
 	//Top level test for making a move
 	this.canMove = function(from, to)
 	{
-		//
-		return true;
+		return this.interpretMove(from, to) != null;
 	};
 
 	//Load initial board layout
-	this._addRow("white", 1, ["rook", "knight", "bishop", "king", "queen", "bishop", "knight", "rook"]);
-	this._addRow("white", 2, "pawn");
-	this._addRow("black", 7, "pawn");
-	this._addRow("black", 8, ["rook", "knight", "bishop", "king", "queen", "bishop", "knight", "rook"]);
+	this._addRow("white", 1, [ChessRook, ChessKnight, ChessBishop, ChessKing, ChessQueen, ChessBishop, ChessKnight, ChessRook]);
+	this._addRow("white", 2, ChessPawn);
+	this._addRow("black", 7, ChessPawn);
+	this._addRow("black", 8, [ChessRook, ChessKnight, ChessBishop, ChessKing, ChessQueen, ChessBishop, ChessKnight, ChessRook]);
 }
 
 if(typeof module != "undefined") {

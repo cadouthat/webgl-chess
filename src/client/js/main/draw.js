@@ -22,7 +22,8 @@ function draw(msTime)
 			drawBoard(function(ix, iy) {
 				return ix == glowSpace[0] && iy == glowSpace[1];
 			}, blank_shader);
-		});
+		},
+		greenGlowColor);
 
 		//Draw spaces in front of glow
 		drawBoard(function(ix, iy) {
@@ -35,58 +36,34 @@ function draw(msTime)
 		drawBoard();
 	}
 
-	if(glowPieces.length)
+	//Compute piece distances from camera
+	for(var i = 0; i < game.pieces.length; i++)
 	{
-		//Compute piece distances from camera
-		for(var i = 0; i < game.pieces.length; i++)
-		{
-			game.pieces[i].viewDistance = getSpaceWorldPosition(game.pieces[i].position).sub(cam.getEye()).len();
-		}
-
-		//Sort pieces by distance (far first)
-		game.pieces.sort(function(a, b) {
-			return b.viewDistance - a.viewDistance;
-		});
-
-		//Draw pieces in order
-		for(var i = 0; i < game.pieces.length; i++)
-		{
-			var piece = game.pieces[i];
-
-			//If the piece is glowing, draw the glow first
-			if(glowPieces.indexOf(piece) >= 0)
-			{
-				drawGlow(function() {
-					drawPiece(piece, blank_shader);
-				});
-			}
-
-			//Bind texture and draw piece
-			gl.bindTexture(gl.TEXTURE_2D,(piece.owner == "white") ? tex_white_marble : tex_black_marble);
-			drawPiece(piece);
-		}
+		game.pieces[i].viewDistance = getSpaceWorldPosition(game.pieces[i].position).sub(cam.getEye()).len();
 	}
-	else
+
+	//Sort pieces by distance (far first)
+	game.pieces.sort(function(a, b) {
+		return b.viewDistance - a.viewDistance;
+	});
+
+	//Draw pieces in order
+	for(var i = 0; i < game.pieces.length; i++)
 	{
-		//Draw white chess pieces
-		gl.bindTexture(gl.TEXTURE_2D, tex_white_marble);
-		for(var i = 0; i < game.pieces.length; i++)
+		var piece = game.pieces[i];
+
+		//If the piece is glowing, draw the glow first
+		if(piece.glowColor)
 		{
-			if(game.pieces[i].owner == "white")
-			{
-				drawPiece(game.pieces[i]);
-			}
+			drawGlow(function() {
+				drawPiece(piece, blank_shader);
+			},
+			piece.glowColor);
 		}
 
-		//Draw black chess pieces
-		gl.bindTexture(gl.TEXTURE_2D, tex_black_marble);
-		for(var i = 0; i < game.pieces.length; i++)
-		{
-			if(game.pieces[i].owner == "black")
-			{
-				drawPiece(game.pieces[i]);
-			}
-		}
+		//Bind texture and draw piece
+		gl.bindTexture(gl.TEXTURE_2D, (piece.owner == "white") ? tex_white_marble : tex_black_marble);
+		drawPiece(piece);
 	}
 
 	//Progress game time
@@ -107,7 +84,7 @@ function createFramebufferTex(framebuffer)
 	return tex;
 }
 
-function drawGlow(drawBlanks)
+function drawGlow(drawBlanks, color)
 {
 	//Initialize and bind framebuffer
 	if(glowFb == null)
@@ -141,7 +118,7 @@ function drawGlow(drawBlanks)
 	gl.bindTexture(gl.TEXTURE_2D, glowTex);
 	//Blur X
 	gl.useProgram(blur_shader.program);
-	gl.uniform3fv(blur_shader.uniform.color, new vec3(0.412, 0.98, 0.427).scaleIn(2).asArray());
+	gl.uniform3fv(blur_shader.uniform.color, color.asArray());
 	gl.uniform1i(blur_shader.uniform.blurDirection, 0);
 	gl.uniform2fv(blur_shader.uniform.texSize, new Float32Array([glowFb.width, glowFb.height]));
 	drawScreenOverlay();
@@ -246,7 +223,7 @@ function drawPiece(piece, shader)
 	}
 
 	//Draw the piece model for this type
-	drawModel(piece_models[piece.type], shader);
+	drawModel(piece.constructor.model, shader);
 
 	//Restore model matrix
 	mvp.popModel();
