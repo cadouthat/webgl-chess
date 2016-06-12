@@ -16,17 +16,34 @@ function ChessGame()
 	this.graveyard = [];
 	//Player currently moving
 	this.turn = "white";
-	//Game is in "check" status
-	this.check = false;
-	//Game is over
-	this.checkmate = false;
+
+	//Create a duplicate of the current game state
+	this._clone = function()
+	{
+		var obj = new ChessGame();
+		obj.turn = this.turn;
+		for(var i = 0; i < this.pieces.length; i++)
+		{
+			obj.pieces.push(this._clonePiece(this.pieces[i]));
+		}
+		return obj;
+	};
+
+	//Clone a chess piece
+	this._clonePiece = function(piece)
+	{
+		var obj = new piece.constructor();
+		obj.owner = piece.owner;
+		obj.position = [piece.position[0], piece.position[1]];
+		return obj;
+	};
 
 	//Helper for initializing a piece
 	this._createPiece = function(owner, type, position)
 	{
 		var piece = new type();
 		piece.owner = owner;
-		piece.position = position;
+		piece.position = [position[0], position[1]];
 		return piece;
 	};
 
@@ -42,12 +59,40 @@ function ChessGame()
 		}
 	};
 
+	//Helper for finding and removing a piece from the active piece list
+	this._removePiece = function(piece, addToGraveyard)
+	{
+		//Remove from active piece list
+		var ind = this.pieces.indexOf(piece);
+		if(ind >= 0)
+		{
+			this.pieces.splice(ind, 1);
+		}
+		//Add to graveyard if requested
+		if(addToGraveyard)
+		{
+			this.graveyard.push(piece);
+		}
+	};
+
 	//Helper for comparing board spaces
 	this.equalSpaces = function(a, b)
 	{
 		if(!a && !b) return true;
 		if(!a || !b) return false;
 		return (a[0] == b[0] && a[1] == b[1]);
+	};
+
+	//Validate a space and convert to integer values
+	this.validateSpace = function(pos)
+	{
+		if(pos.length != 2) return false;
+		pos[0] = parseInt(pos[0]);
+		pos[1] = parseInt(pos[1]);
+		if(isNaN(pos[0])) return false;
+		if(isNaN(pos[1])) return false;
+		return (pos[0] >= 0 && pos[0] < 8 &&
+			pos[1] >= 0 && pos[1] < 8);
 	};
 
 	//Find the piece at position (if any)
@@ -64,23 +109,180 @@ function ChessGame()
 		return null;
 	};
 
-	//Get details for a proposed move
+	//Find a player's king
+	this.findKing = function(player)
+	{
+		for(var i = 0; i < this.pieces.length; i++)
+		{
+			if(this.pieces[i].owner == player &&
+				this.pieces[i].constructor == ChessKing)
+			{
+				return this.pieces[i];
+			}
+		}
+		return null;
+	};
+
+	//Determine the piece (if any) threatening a player's king
+	this.findCheck = function(player)
+	{
+		var king = this.findKing(player);
+		//Check all enemy pieces for possible captures
+		for(var i = 0; i < this.pieces.length; i++)
+		{
+			if(this.pieces[i].owner != player)
+			{
+				if(this.interpretMove(this.pieces[i].position, king.position) != null)
+				{
+					return this.pieces[i];
+				}
+			}
+		}
+		return null;
+	};
+
+	//The player taking their turn can make at least one legal move
+	this.hasLegalMove = function()
+	{
+		//Dumb brute-force check for any owned piece moving to any position
+		for(var i = 0; i < this.pieces.length; i++)
+		{
+			if(this.pieces[i].owner == this.turn)
+			{
+				var tmpPos = [0, 0];
+				for(var j = 0; j < 8; j++)
+				{
+					tmpPos[0] = j;
+					for(var k = 0; k < 8; k++)
+					{
+						tmpPos[1] = k;
+						if(this.interpretMove(this.pieces[i].position, tmpPos) != null)
+						{
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	};
+
+	//The player taking their turn has lost
+	this.isCheckmate = function()
+	{
+		if(!this.hasLegalMove())
+		{
+			//Player has no moves and is in check
+			return this.findCheck(this.turn) != null;
+		}
+		return false;
+	};
+
+	//The game is a necessary tie
+	this.isDraw = function()
+	{
+		if(!this.hasLegalMove())
+		{
+			//Player has no moves but is not in check
+			return this.findCheck(this.turn) == null;
+		}
+		return false;
+	};
+
+	//Validate a move and return details
 	this.interpretMove = function(from, to)
 	{
-		//Get piece to be moved
-		var piece = this.pieceAt(from);
-		if(piece == null)
+		//Validate spaces
+		if(!this.validateSpace(from) ||
+			!this.validateSpace(to) ||
+			this.equalSpaces(from, to))
 		{
 			return null;
 		}
-		//Piece objects interpret details for their type
-		return piece.interpretMove(to);
+		//Get piece to be moved, must be valid and owned by player
+		var piece = this.pieceAt(from);
+		if(piece == null || piece.owner != this.turn)
+		{
+			return null;
+		}
+		//Create the move object
+		var move = {
+			"moves": [],
+			"capture": null,
+			"promotion": null
+		};
+		//Add the basic piece movement
+		move.moves.push({
+			"piece": piece,
+			"dest": to
+		});
+		//If the destination contains a piece, it will be captured
+		move.capture = this.pieceAt(to);
+		if(move.capture != null && move.capture.owner == this.turn)
+		{
+			return null;
+		}
+		//Validate and add details based on the piece type
+		if(!piece.interpretMove(move))
+		{
+			return null;
+		}
+		//Unless capturing the king, this move must not leave the player in check
+		if(!move.capture || move.capture.constructor != ChessKing)
+		{
+			//Clone the game state for testing
+			var testGame = this._clone();
+			//Execute the proposed move (promotion shouldn't affect outcome)
+			if(!testGame.doMove(from, to, ChessQueen))
+			{
+				return null;
+			}
+			//Test check state for the player moving
+			if(testGame.findCheck(this.turn))
+			{
+				//TODO - specify the threatening piece in the result
+				return null;
+			}
+		}
+		return move;
 	};
 
-	//Top level test for making a move
-	this.canMove = function(from, to)
+	//Validate and execute a move
+	this.doMove = function(from, to, promoteTo)
 	{
-		return this.interpretMove(from, to) != null;
+		var move = this.interpretMove(from, to);
+		if(!move) return false;
+		//Promotion choice must be provided if relevant
+		if(move.promotion && !promoteTo)
+		{
+			return false;
+		}
+		//Move
+		for(var i = 0; i < move.moves.length; i++)
+		{
+			var piece = move.moves[i].piece;
+			var dest = move.moves[i].dest;
+			this.lastMoved = piece;
+			piece.lastPosition = piece.position;
+			piece.position = dest;
+		}
+		//Capture
+		if(move.capture)
+		{
+			//Remove piece and add to graveyard
+			this._removePiece(move.capture, true);
+		}
+		//Promote
+		if(move.promotion)
+		{
+			//Remove old piece
+			this._removePiece(move.promotion);
+			//Add new piece at same position
+			this.pieces.push(this._createPiece(this.turn, promoteTo, move.promotion.position));
+		}
+		//Swap turns
+		this.turn = (this.turn == "white") ? "black" : "white";
+		return true;
 	};
 
 	//Load initial board layout

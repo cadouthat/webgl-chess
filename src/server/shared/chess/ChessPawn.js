@@ -4,10 +4,10 @@ function ChessPawn()
 	this.position = null;
 
 	//Get details for a proposed move
-	this.interpretMove = function(to)
+	this.interpretMove = function(move)
 	{
 		//
-		return null;
+		return false;
 	};
 }
 

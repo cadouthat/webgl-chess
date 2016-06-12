@@ -1,6 +1,7 @@
 var hoverSpace = null;
 var activeSpace = null;
 var glowSpace = null;
+var pendingMove = null;
 var greenGlowColor = null;
 var whiteGlowColor = null;
 
@@ -17,6 +18,7 @@ function updateHover()
 	//Reset hover/glow state
 	hoverSpace = null;
 	glowSpace = null;
+	pendingMove = null;
 	for(var i = 0; i < game.pieces.length; i++)
 	{
 		game.pieces[i].glowColor = null;
@@ -104,8 +106,9 @@ function updateHover()
 		}
 		else if(activeSpace)
 		{
-			//Highlight possible moves
-			if(game.canMove(activeSpace, hoverSpace))
+			//Check for possible move
+			pendingMove = game.interpretMove(activeSpace, hoverSpace);
+			if(pendingMove != null)
 			{
 				//Highlight whatever lies at the hover location
 				if(hoverPiece)
