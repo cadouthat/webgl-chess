@@ -36,9 +36,21 @@ $(window).ready(function(){
 		case 1:
 			//Clear selection by default
 			activeSpace = null;
-			//New selection from hover
-			if(hoverSpace)
+			if(pendingMove)
 			{
+				//TODO - prompt for promotion
+				//Execute highlighted move
+				if(game.executeMove(pendingMove))
+				{
+					//TEST
+					myColor = game.turn;
+					//TEST
+					updateHover();
+				}
+			}
+			else if(hoverSpace)
+			{
+				//New selection from hover
 				var piece = game.pieceAt(hoverSpace);
 				if(piece && piece.owner == myColor)
 				{

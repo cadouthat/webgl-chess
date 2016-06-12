@@ -38,6 +38,50 @@ function ChessGame()
 		return obj;
 	};
 
+	//Initialize move object
+	this._createMove = function()
+	{
+		return {
+			"game": this,
+			"from": null,
+			"to": null,
+			"forward": null,
+			"moves": [],
+			"capture": null,
+			"promotion": null,
+			"promoteTo": null
+		};
+	}
+
+	//Clone a move, converting pieces to corresponding pieces in this game
+	this._cloneMove = function(move)
+	{
+		//Copy basic fields into new move
+		var obj = this._createMove();
+		obj.from = move.from;
+		obj.to = move.to;
+		obj.forward = move.forward;
+		//Duplicate move list
+		for(var i = 0; i < move.moves.length; i++)
+		{
+			var m = move.moves[i];
+			obj.moves.push({
+				"piece": this.pieceAt(m.piece.position),
+				"dest": [m.dest[0], m.dest[1]]
+			});
+		}
+		//Duplicate capture and promotion pieces
+		if(move.capture != null)
+		{
+			obj.capture = this.pieceAt(move.capture.position);
+		}
+		if(move.promotion != null)
+		{
+			obj.promotion = this.pieceAt(move.promotion.position);
+		}
+		return obj;
+	};
+
 	//Helper for initializing a piece
 	this._createPiece = function(owner, type, position)
 	{
@@ -98,6 +142,7 @@ function ChessGame()
 	//Find the piece at position (if any)
 	this.pieceAt = function(pos)
 	{
+		//TODO - optimize with a by-position array
 		for(var i = 0; i < this.pieces.length; i++)
 		{
 			if(this.pieces[i].position[0] == pos[0] &&
@@ -189,6 +234,31 @@ function ChessGame()
 		return false;
 	};
 
+	//Check if a path is clear, excluding start and end
+	this.isPathClear = function(from, to)
+	{
+		//Get direction of movement
+		var dx = to[0] - from[0];
+		var dy = to[1] - from[1];
+		if(dx != 0) dx /= Math.abs(dx);
+		if(dy != 0) dy /= Math.abs(dy);
+		//Offset one space from start
+		var x = from[0] + dx;
+		var y = from[1] + dy;
+		//Move up to, but not including end
+		while(x != to[0] || y != to[1])
+		{
+			//Check for obstruction
+			if(this.pieceAt([x, y]) != null)
+			{
+				return false;
+			}
+			if(x != to[0]) x += dx;
+			if(y != to[1]) y += dy;
+		}
+		return true;
+	};
+
 	//Validate a move and return details
 	this.interpretMove = function(from, to)
 	{
@@ -205,13 +275,12 @@ function ChessGame()
 		{
 			return null;
 		}
-		//Create the move object
-		var move = {
-			"moves": [],
-			"capture": null,
-			"promotion": null
-		};
+		//Create empty move object
+		var move = this._createMove();
 		//Add the basic piece movement
+		move.from = from;
+		move.to = to;
+		move.forward = (this.turn == "white" ? 1 : -1);
 		move.moves.push({
 			"piece": piece,
 			"dest": to
@@ -232,8 +301,11 @@ function ChessGame()
 		{
 			//Clone the game state for testing
 			var testGame = this._clone();
-			//Execute the proposed move (promotion shouldn't affect outcome)
-			if(!testGame.doMove(from, to, ChessQueen))
+			var testMove = testGame._cloneMove(move);
+			//Placeholder for promotion since it shouldn't affect outcome
+			testMove.promoteTo = ChessQueen;
+			//Execute the proposed move
+			if(!testGame.executeMove(testMove))
 			{
 				return null;
 			}
@@ -247,13 +319,11 @@ function ChessGame()
 		return move;
 	};
 
-	//Validate and execute a move
-	this.doMove = function(from, to, promoteTo)
+	//Execute a prepared move
+	this.executeMove = function(move)
 	{
-		var move = this.interpretMove(from, to);
-		if(!move) return false;
 		//Promotion choice must be provided if relevant
-		if(move.promotion && !promoteTo)
+		if(move.promotion && !move.promoteTo)
 		{
 			return false;
 		}
@@ -278,11 +348,23 @@ function ChessGame()
 			//Remove old piece
 			this._removePiece(move.promotion);
 			//Add new piece at same position
-			this.pieces.push(this._createPiece(this.turn, promoteTo, move.promotion.position));
+			this.pieces.push(this._createPiece(this.turn, move.promoteTo, move.promotion.position));
 		}
 		//Swap turns
 		this.turn = (this.turn == "white") ? "black" : "white";
 		return true;
+	};
+
+	//Validate and execute a move
+	this.doMove = function(from, to, promoteTo)
+	{
+		var move = this.interpretMove(from, to);
+		if(!move) return false;
+		if(move.promotion)
+		{
+			move.promoteTo = promoteTo;
+		}
+		return this.executeMove(move);
 	};
 
 	//Load initial board layout
