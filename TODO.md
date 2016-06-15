@@ -1,5 +1,7 @@
+* Work out bugs in chess rules
 * Networking
 * UI (matchmaking, chat, resignation, game outcome)
+* Animations
 * Turn timers
 * Advanced move indicators (red glow for check, etc.)
 * Optimizations for rule processing

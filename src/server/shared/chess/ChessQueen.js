@@ -22,6 +22,8 @@ function ChessQueen()
 	};
 }
 
+ChessQueen.name = "queen";
+
 if(typeof module != "undefined") {
 	module.exports = ChessQueen;
 }

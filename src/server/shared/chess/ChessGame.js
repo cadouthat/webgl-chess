@@ -356,13 +356,22 @@ function ChessGame()
 	};
 
 	//Validate and execute a move
-	this.doMove = function(from, to, promoteTo)
+	this.doMove = function(from, to, promoteToName)
 	{
 		var move = this.interpretMove(from, to);
 		if(!move) return false;
 		if(move.promotion)
 		{
-			move.promoteTo = promoteTo;
+			//Convert the type name to prototype object
+			var allTypes = [ChessPawn, ChessRook, ChessKnight, ChessBishop, ChessQueen, ChessKing];
+			for(var i = 0; i < allTypes.length; i++)
+			{
+				if(promoteToName == allTypes[i].name)
+				{
+					move.promoteTo = allTypes[i];
+					break;
+				}
+			}
 		}
 		return this.executeMove(move);
 	};

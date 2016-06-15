@@ -38,7 +38,13 @@ $(window).ready(function(){
 			activeSpace = null;
 			if(pendingMove)
 			{
-				//TODO - prompt for promotion
+				if(pendingMove.promotion)
+				{
+					//TODO - prompt for promotion
+					//TEST
+					pendingMove.promoteTo = ChessQueen;
+					//TEST
+				}
 				//Execute highlighted move
 				if(game.executeMove(pendingMove))
 				{

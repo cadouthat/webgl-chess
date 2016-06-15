@@ -66,6 +66,8 @@ function ChessPawn()
 	};
 }
 
+ChessPawn.name = "pawn";
+
 if(typeof module != "undefined") {
 	module.exports = ChessPawn;
 }

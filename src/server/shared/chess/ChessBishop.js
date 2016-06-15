@@ -22,6 +22,8 @@ function ChessBishop()
 	};
 }
 
+ChessBishop.name = "bishop";
+
 if(typeof module != "undefined") {
 	module.exports = ChessBishop;
 }

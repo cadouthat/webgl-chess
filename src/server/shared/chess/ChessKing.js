@@ -54,6 +54,8 @@ function ChessKing()
 	};
 }
 
+ChessKing.name = "king";
+
 if(typeof module != "undefined") {
 	module.exports = ChessKing;
 }
