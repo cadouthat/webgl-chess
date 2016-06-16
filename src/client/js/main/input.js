@@ -49,7 +49,7 @@ $(window).ready(function(){
 				if(game.executeMove(pendingMove))
 				{
 					//TEST
-					myColor = game.turn;
+					client.myColor = game.turn;
 					//TEST
 					updateHover();
 				}
@@ -58,7 +58,7 @@ $(window).ready(function(){
 			{
 				//New selection from hover
 				var piece = game.pieceAt(hoverSpace);
-				if(piece && piece.owner == myColor)
+				if(piece && piece.owner == client.myColor)
 				{
 					activeSpace = hoverSpace;
 				}

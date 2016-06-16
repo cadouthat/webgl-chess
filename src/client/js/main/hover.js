@@ -25,7 +25,7 @@ function updateHover()
 	}
 
 	//No interaction if it is not my turn
-	if(game.turn != myColor)
+	if(game.turn != client.myColor)
 	{
 		activeSpace = null;
 		return;
@@ -100,7 +100,7 @@ function updateHover()
 	{
 		var hoverPiece = game.pieceAt(hoverSpace);
 		//Highlight my own pieces to select them
-		if(hoverPiece && hoverPiece.owner == myColor)
+		if(hoverPiece && hoverPiece.owner == client.myColor)
 		{
 			hoverPiece.glowColor = whiteGlowColor;
 		}

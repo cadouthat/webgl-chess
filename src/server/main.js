@@ -16,7 +16,11 @@ var httpServer = http.createServer(function(request, response) {
 var wss = new WebSocketServer({ "server": httpServer });
 wss.on("connection", function(sock) {
 	sock.on("message", function(msg) {
+		//
 		console.log(msg);
+		//
 	});
-	sock.send("Welcome!");
+	//
+	sock.send(JSON.stringify({"event": "login", "description": "Welcome!"}));
+	//
 });
