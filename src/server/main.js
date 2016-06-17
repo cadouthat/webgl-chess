@@ -12,15 +12,35 @@ var httpServer = http.createServer(function(request, response) {
 	response.end();
 }).listen(settings.ws_port);
 
+//Global matchmaking queue
+var sessionWaiting = [];
+
 //Listen for websocket requests on the http server
 var wss = new WebSocketServer({ "server": httpServer });
 wss.on("connection", function(sock) {
+
 	sock.on("message", function(msg) {
 		//
 		console.log(msg);
 		//
 	});
-	//
-	sock.send(JSON.stringify({"event": "login", "description": "Welcome!"}));
-	//
+
+	if(sessionWaiting.length)
+	{
+		var partner = sessionWaiting.splice(0, 1)[0];
+		partner.assignedColor = "white";
+		partner.partner = sock;
+		partner.send(JSON.stringify({
+			"type": "start",
+			"assignedColor": partner.assignedColor
+		}));
+		sock.assignedColor = "black";
+		sock.partner = partner;
+		sock.send(JSON.stringify({
+			"type": "start",
+			"assignedColor": sock.assignedColor
+		}));
+		console.log("Session started");
+	}
+	else sessionWaiting.push(sock);
 });

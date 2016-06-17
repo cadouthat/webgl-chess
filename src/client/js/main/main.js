@@ -14,11 +14,33 @@ $(window).ready(function()
 	//Start main draw loop
 	draw(performance.now());
 
-	//Connect to server
+	//Create client and setup state handler
 	client = new ChessClient();
-	//TEST
-	client.myColor = "white";
-	//TEST
+	client.update = function(client) {
+		//TEST
+		if(client.connected)
+		{
+			if(client.myColor == null)
+			{
+				console.log("Waiting for opponent..");
+			}
+			else
+			{
+				console.log("(in game status)");
+			}
+		}
+		else if(client.error)
+		{
+			console.log("Connection lost.");
+		}
+		else
+		{
+			console.log("Connecting to server..");
+		}
+		//TEST
+	};
+	//Connect to server
+	client.open();
 });
 
 $(window).resize(function()
