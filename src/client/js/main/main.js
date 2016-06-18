@@ -14,9 +14,10 @@ $(window).ready(function()
 	//Start main draw loop
 	draw(performance.now());
 
-	//Create client and setup state handler
+	//Create client and setup handlers
 	client = new ChessClient();
-	client.update = function(client) {
+	client.update = function(client)
+	{
 		//TEST
 		if(client.connected)
 		{
@@ -38,6 +39,11 @@ $(window).ready(function()
 			console.log("Connecting to server..");
 		}
 		//TEST
+	};
+	client.opponentMove = function(from, to, promoteToName)
+	{
+		game.doMove(from, to, promoteToName);
+		updateHover();
 	};
 	//Connect to server
 	client.open();

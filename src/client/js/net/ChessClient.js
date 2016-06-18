@@ -6,10 +6,12 @@ function ChessClient()
 	this.connected = false;
 	this.error = false;
 	this.myColor = null;
-	//Handler for changes in the client state
+	//Handlers for changes in the client state
 	this.update = function(client){};
+	this.opponentMove = function(from, to, promoteToName){};
 
-	this.open = function() {
+	this.open = function()
+	{
 		//Reset before connecting
 		this.close();
 
@@ -18,12 +20,14 @@ function ChessClient()
 
 		//Setup event handlers
 		var _this = this;
-		this._sock.onopen = function() {
+		this._sock.onopen = function()
+		{
 			_this.connected = true;
 			_this.update(_this);
 		};
 
-		this._sock.onmessage = function(event) {
+		this._sock.onmessage = function(event)
+		{
 			var msg = JSON.parse(event.data);
 			switch(msg.type)
 			{
@@ -31,23 +35,39 @@ function ChessClient()
 				_this.myColor = msg.assignedColor;
 				_this.update(_this);
 				break;
+			case "move":
+				_this.opponentMove(msg.from, msg.to, msg.promoteTo);
+				break;
 			}
 		};
 
-		this._sock.onclose = function() {
+		this._sock.onclose = function()
+		{
 			_this.connected = false;
 			_this.error = true;
 			_this.update(_this);
 		};
 	};
 
-	this.send = function(msg) {
+	this.send = function(msg)
+	{
 		if(this._sock != null) {
 			this._sock.send(JSON.stringify(msg));
 		}
 	};
 
-	this.close = function() {
+	this.move = function(from, to, promoteToName)
+	{
+		this.send({
+			"type": "move",
+			"from": from,
+			"to": to,
+			"promoteTo": promoteToName
+		});
+	};
+
+	this.close = function()
+	{
 		if(this._sock != null) {
 			this._sock.close();
 		}

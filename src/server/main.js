@@ -19,28 +19,55 @@ var sessionWaiting = [];
 var wss = new WebSocketServer({ "server": httpServer });
 wss.on("connection", function(sock) {
 
-	sock.on("message", function(msg) {
-		//
-		console.log(msg);
-		//
+	sock.on("message", function(data) {
+		var msg = JSON.parse(data);
+		switch(msg.type)
+		{
+		case "move":
+			//Apply move to session game state
+			if(sock.game.turn == sock.assignedColor &&
+				sock.game.doMove(msg.from, msg.to, msg.promoteTo))
+			{
+				//Relay move to opponent
+				sock.partner.send(JSON.stringify({
+					"type": "move",
+					"from": msg.from,
+					"to": msg.to,
+					"promoteTo": msg.promoteTo
+				}));
+				//TODO - check for end of game
+			}
+			else
+			{
+				console.log("Invalid move detected!");
+				//TODO - log game/player details
+				//TODO - terminate session
+			}
+			break;
+		}
 	});
 
 	if(sessionWaiting.length)
 	{
+		var game = new ChessGame();
+		console.log("Session started");
+
 		var partner = sessionWaiting.splice(0, 1)[0];
+		partner.game = game;
 		partner.assignedColor = "white";
 		partner.partner = sock;
 		partner.send(JSON.stringify({
 			"type": "start",
 			"assignedColor": partner.assignedColor
 		}));
+
+		sock.game = game;
 		sock.assignedColor = "black";
 		sock.partner = partner;
 		sock.send(JSON.stringify({
 			"type": "start",
 			"assignedColor": sock.assignedColor
 		}));
-		console.log("Session started");
 	}
 	else sessionWaiting.push(sock);
 });

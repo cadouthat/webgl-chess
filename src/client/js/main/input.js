@@ -48,9 +48,10 @@ $(window).ready(function(){
 				//Execute highlighted move
 				if(game.executeMove(pendingMove))
 				{
-					//TEST
-					client.myColor = game.turn;
-					//TEST
+					//Notify the server
+					client.move(pendingMove.from,
+						pendingMove.to,
+						pendingMove.promotion ? pendingMove.promoteTo.name : null);
 					updateHover();
 				}
 			}
