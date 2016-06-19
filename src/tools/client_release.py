@@ -23,6 +23,7 @@ def copyShallow(dir, dest):
 
 source = "../client/"
 shared = "../server/shared/"
+testing = "../testing/"
 release = "../../release/"
 
 # Remove previous release
@@ -55,3 +56,6 @@ if subprocess.call(["python", "transform_js/bundle_js.py", tmp, release + "app.j
 
 # Remove temporary directory
 shutil.rmtree(tmp)
+
+# Copy test utils
+shutil.copytree(testing, release + "testing/")
