@@ -38,20 +38,21 @@ $(window).ready(function(){
 			activeSpace = null;
 			if(pendingMove)
 			{
+				var promoteTo = null;
 				if(pendingMove.promotion)
 				{
 					//TODO - prompt for promotion
 					//TEST
-					pendingMove.promoteTo = ChessQueen;
+					promoteTo = "queen";
 					//TEST
 				}
 				//Execute highlighted move
-				if(game.executeMove(pendingMove))
+				if(game.doMove(pendingMove.from, pendingMove.to, promoteTo))
 				{
 					//Notify the server
 					client.move(pendingMove.from,
 						pendingMove.to,
-						pendingMove.promotion ? pendingMove.promoteTo.name : null);
+						pendingMove.promotion ? pendingMove.promoteTo.pieceName : null);
 					updateHover();
 				}
 			}

@@ -18,7 +18,7 @@ function ChessKnight()
 	};
 }
 
-ChessKnight.name = "knight";
+ChessKnight.pieceName = "knight";
 
 if(typeof module != "undefined") {
 	module.exports = ChessKnight;

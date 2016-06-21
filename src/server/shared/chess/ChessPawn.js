@@ -66,7 +66,7 @@ function ChessPawn()
 	};
 }
 
-ChessPawn.name = "pawn";
+ChessPawn.pieceName = "pawn";
 
 if(typeof module != "undefined") {
 	module.exports = ChessPawn;

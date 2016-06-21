@@ -22,7 +22,7 @@ function ChessQueen()
 	};
 }
 
-ChessQueen.name = "queen";
+ChessQueen.pieceName = "queen";
 
 if(typeof module != "undefined") {
 	module.exports = ChessQueen;

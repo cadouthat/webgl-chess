@@ -22,7 +22,7 @@ function ChessRook()
 	};
 }
 
-ChessRook.name = "rook";
+ChessRook.pieceName = "rook";
 
 if(typeof module != "undefined") {
 	module.exports = ChessRook;

@@ -16,12 +16,17 @@ function ChessGame()
 	this.graveyard = [];
 	//Player currently moving
 	this.turn = "white";
+	//Player moving has lost
+	this.isCheckmate = false;
+	//Game ends in a tie
+	this.isDraw = false;
 
 	//Create a duplicate of the current game state
 	this._clone = function()
 	{
 		var obj = new ChessGame();
 		obj.turn = this.turn;
+		obj.pieces = [];
 		for(var i = 0; i < this.pieces.length; i++)
 		{
 			obj.pieces.push(this._clonePiece(this.pieces[i]));
@@ -212,24 +217,22 @@ function ChessGame()
 		return false;
 	};
 
-	//The player taking their turn has lost
-	this.isCheckmate = function()
+	//Check for end-of-game scenarios
+	this.updateGameEnding = function()
 	{
+		//The game is over when the player has no moves
 		if(!this.hasLegalMove())
 		{
-			//Player has no moves and is in check
-			return this.findCheck(this.turn) != null;
-		}
-		return false;
-	};
-
-	//The game is a necessary tie
-	this.isDraw = function()
-	{
-		if(!this.hasLegalMove())
-		{
-			//Player has no moves but is not in check
-			return this.findCheck(this.turn) == null;
+			//Player loses if in check
+			if(this.findCheck(this.turn) != null)
+			{
+				this.isCheckmate = true;
+			}
+			else
+			{
+				this.isDraw = true;
+			}
+			return true;
 		}
 		return false;
 	};
@@ -269,9 +272,9 @@ function ChessGame()
 		{
 			return null;
 		}
-		//Get piece to be moved, must be valid and owned by player
+		//Get piece to be moved, must exist
 		var piece = this.pieceAt(from);
-		if(piece == null || piece.owner != this.turn)
+		if(piece == null)
 		{
 			return null;
 		}
@@ -280,17 +283,13 @@ function ChessGame()
 		//Add the basic piece movement
 		move.from = from;
 		move.to = to;
-		move.forward = (this.turn == "white" ? 1 : -1);
+		move.forward = (piece.owner == "white" ? 1 : -1);
 		move.moves.push({
 			"piece": piece,
 			"dest": to
 		});
 		//If the destination contains a piece, it will be captured
 		move.capture = this.pieceAt(to);
-		if(move.capture != null && move.capture.owner == this.turn)
-		{
-			return null;
-		}
 		//Validate and add details based on the piece type
 		if(!piece.interpretMove(move))
 		{
@@ -305,7 +304,7 @@ function ChessGame()
 			//Placeholder for promotion since it shouldn't affect outcome
 			testMove.promoteTo = ChessQueen;
 			//Execute the proposed move
-			if(!testGame.executeMove(testMove))
+			if(!testGame._executeMove(testMove))
 			{
 				return null;
 			}
@@ -320,7 +319,7 @@ function ChessGame()
 	};
 
 	//Execute a prepared move
-	this.executeMove = function(move)
+	this._executeMove = function(move)
 	{
 		//Promotion choice must be provided if relevant
 		if(move.promotion && !move.promoteTo)
@@ -358,29 +357,55 @@ function ChessGame()
 	//Validate and execute a move
 	this.doMove = function(from, to, promoteToName)
 	{
+		//No more moves if the game is over
+		if(this.isDraw || this.isCheckmate)
+		{
+			return false;
+		}
+		//Get piece to be moved, must be valid and owned by player
+		var piece = this.pieceAt(from);
+		if(piece == null || piece.owner != this.turn)
+		{
+			return false;
+		}
+		//Interpret details
 		var move = this.interpretMove(from, to);
-		if(!move) return false;
+		if(!move)
+		{
+			return false;
+		}
+		//Cannot capture self
+		if(move.capture != null && move.capture.owner == this.turn)
+		{
+			return false;
+		}
 		if(move.promotion)
 		{
 			//Convert the type name to prototype object
-			var allTypes = [ChessPawn, ChessRook, ChessKnight, ChessBishop, ChessQueen, ChessKing];
+			var allTypes = [ChessRook, ChessKnight, ChessBishop, ChessQueen];
 			for(var i = 0; i < allTypes.length; i++)
 			{
-				if(promoteToName == allTypes[i].name)
+				if(promoteToName == allTypes[i].pieceName)
 				{
 					move.promoteTo = allTypes[i];
 					break;
 				}
 			}
 		}
-		return this.executeMove(move);
+		if(!this._executeMove(move))
+		{
+			return false;
+		}
+		//Update state
+		this.updateGameEnding();
+		return true;
 	};
 
 	//Load initial board layout
-	this._addRow("white", 1, [ChessRook, ChessKnight, ChessBishop, ChessKing, ChessQueen, ChessBishop, ChessKnight, ChessRook]);
+	this._addRow("white", 1, [ChessRook, ChessKnight, ChessBishop, ChessQueen, ChessKing, ChessBishop, ChessKnight, ChessRook]);
 	this._addRow("white", 2, ChessPawn);
 	this._addRow("black", 7, ChessPawn);
-	this._addRow("black", 8, [ChessRook, ChessKnight, ChessBishop, ChessKing, ChessQueen, ChessBishop, ChessKnight, ChessRook]);
+	this._addRow("black", 8, [ChessRook, ChessKnight, ChessBishop, ChessQueen, ChessKing, ChessBishop, ChessKnight, ChessRook]);
 }
 
 if(typeof module != "undefined") {

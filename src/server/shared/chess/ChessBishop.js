@@ -22,7 +22,7 @@ function ChessBishop()
 	};
 }
 
-ChessBishop.name = "bishop";
+ChessBishop.pieceName = "bishop";
 
 if(typeof module != "undefined") {
 	module.exports = ChessBishop;

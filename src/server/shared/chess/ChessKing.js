@@ -54,7 +54,7 @@ function ChessKing()
 	};
 }
 
-ChessKing.name = "king";
+ChessKing.pieceName = "king";
 
 if(typeof module != "undefined") {
 	module.exports = ChessKing;

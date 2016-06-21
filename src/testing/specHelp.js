@@ -1,3 +1,11 @@
+function $()
+{
+	return {
+		"ready": function() {},
+		"resize": function() {}
+	};
+}
+
 function space(str)
 {
 	var file = str.charCodeAt(0) - "A".charCodeAt(0);
