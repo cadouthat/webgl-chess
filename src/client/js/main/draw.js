@@ -37,15 +37,23 @@ function draw(msTime)
 	}
 
 	//Compute piece distances from camera
+	var willDrawGlow = false;
 	for(var i = 0; i < game.pieces.length; i++)
 	{
 		game.pieces[i].viewDistance = getSpaceWorldPosition(game.pieces[i].position).sub(cam.getEye()).len();
+		if(game.pieces[i].glowColor)
+		{
+			willDrawGlow = true;
+		}
 	}
 
-	//Sort pieces by distance (far first)
-	game.pieces.sort(function(a, b) {
-		return b.viewDistance - a.viewDistance;
-	});
+	if(willDrawGlow)
+	{
+		//Sort pieces by distance (far first)
+		game.pieces.sort(function(a, b) {
+			return b.viewDistance - a.viewDistance;
+		});
+	}
 
 	//Draw pieces in order
 	for(var i = 0; i < game.pieces.length; i++)
