@@ -73,7 +73,7 @@ $(window).ready(function(){
 					//Notify the server
 					client.move(pendingMove.from,
 						pendingMove.to,
-						pendingMove.promotion ? pendingMove.promoteTo.pieceName : null);
+						promoteTo);
 				}
 				activeSpace = null;
 			}

@@ -1,4 +1,6 @@
-* UI (matchmaking, chat, resignation, game outcome)
+* Server handling for disconnects
+* UI (chat, resignation)
+* Rotate camera upon player assignment
 * Animations
 * Turn timers
 * Enforce draws by the 50 move rule

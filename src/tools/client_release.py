@@ -36,6 +36,7 @@ os.mkdir(release)
 # Copy static files
 shutil.copy(source + "index.html", release)
 shutil.copytree(source + "css/", release + "css/")
+shutil.copytree(source + "img/", release + "img/")
 shutil.copytree(source + "mdl/tex/", release + "tex/")
 
 # Create temporary directory for JS files

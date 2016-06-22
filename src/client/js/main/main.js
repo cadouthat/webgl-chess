@@ -1,6 +1,17 @@
 var game;
 var client;
 
+function setGameStatus(str, waiting)
+{
+	$("#status_text").text(str);
+	$("#status_wait").css("display", waiting ? "block" : "none");
+}
+
+function setGameResult(str)
+{
+	$("#game_over").text(str);
+}
+
 $(window).ready(function()
 {
 	initGlContext();
@@ -18,27 +29,47 @@ $(window).ready(function()
 	client = new ChessClient();
 	client.update = function(client)
 	{
-		//TEST
 		if(client.connected)
 		{
 			if(client.myColor == null)
 			{
-				console.log("Waiting for opponent..");
+				setGameStatus("Waiting for opponent", true);
 			}
 			else
 			{
-				console.log("(in game status)");
+				if(game.isCheckmate)
+				{
+					setGameResult((game.turn == client.myColor) ? "Defeat!" : "Victory!");
+					//TODO other end game scenarios
+					setGameStatus("No legal moves", false);
+				}
+				else if(game.isDraw)
+				{
+					setGameResult("Draw!");
+					//TODO other end game scenarios
+					setGameStatus("No legal moves", false);
+				}
+				else
+				{
+					if(game.turn == client.myColor)
+					{
+						setGameStatus("Your move, " + game.turn, false);
+					}
+					else
+					{
+						setGameStatus(game.turn + " is moving", true);
+					}
+				}
 			}
 		}
 		else if(client.error)
 		{
-			console.log("Connection lost.");
+			setGameStatus("Connection lost", false);
 		}
 		else
 		{
-			console.log("Connecting to server..");
+			setGameStatus("Connecting to server", true);
 		}
-		//TEST
 	};
 	client.opponentMove = function(from, to, promoteToName)
 	{

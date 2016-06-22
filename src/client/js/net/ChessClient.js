@@ -33,12 +33,12 @@ function ChessClient()
 			{
 			case "start":
 				_this.myColor = msg.assignedColor;
-				_this.update(_this);
 				break;
 			case "move":
 				_this.opponentMove(msg.from, msg.to, msg.promoteTo);
 				break;
 			}
+			_this.update(_this);
 		};
 
 		this._sock.onclose = function()
@@ -64,6 +64,7 @@ function ChessClient()
 			"to": to,
 			"promoteTo": promoteToName
 		});
+		this.update(this);
 	};
 
 	this.close = function()
