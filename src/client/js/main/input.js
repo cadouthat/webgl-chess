@@ -18,6 +18,29 @@ $(window).ready(function(){
 
 		updateHover();
 	});
+	$(document).keydown(function(event){
+
+		if(!event.key)
+		{
+			switch(event.keyCode)
+			{
+			case 27:
+				event.key = "Escape";
+				break;
+			}
+		}
+
+		switch(event.key)
+		{
+		case "Escape":
+			if(activeSpace)
+			{
+				activeSpace = null;
+				updateHover();
+			}
+			break;
+		}
+	});
 	$(document).mousedown(function(event){
 
 		switch(event.which)
@@ -34,8 +57,6 @@ $(window).ready(function(){
 		switch(event.which)
 		{
 		case 1:
-			//Clear selection by default
-			activeSpace = null;
 			if(pendingMove)
 			{
 				var promoteTo = null;
@@ -53,10 +74,10 @@ $(window).ready(function(){
 					client.move(pendingMove.from,
 						pendingMove.to,
 						pendingMove.promotion ? pendingMove.promoteTo.pieceName : null);
-					updateHover();
 				}
+				activeSpace = null;
 			}
-			else if(hoverSpace)
+			else if(hoverSpace && !game.equalSpaces(hoverSpace, activeSpace))
 			{
 				//New selection from hover
 				var piece = game.pieceAt(hoverSpace);
@@ -65,7 +86,11 @@ $(window).ready(function(){
 					activeSpace = hoverSpace;
 				}
 			}
+			else activeSpace = null;
+
+			updateHover();
 			break;
+
 		case 3:
 			mouseRB = false;
 			break;

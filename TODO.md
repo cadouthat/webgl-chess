@@ -1,5 +1,3 @@
-* Deselect pieces with ESC or by clicking again
-* Networking
 * UI (matchmaking, chat, resignation, game outcome)
 * Animations
 * Turn timers
