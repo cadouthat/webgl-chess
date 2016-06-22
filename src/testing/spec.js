@@ -152,12 +152,106 @@ describe("ChessGame", function() {
 
 		var game = new ChessGame();
 
+		it("should not allow castling to jump pieces", function() {
+			expect(game.doMove(space("A2"), space("A4"))).toBe(true);
+			expect(game.doMove(space("A7"), space("A5"))).toBe(true);
+			expect(game.doMove(space("B2"), space("B4"))).toBe(true);
+			expect(game.doMove(space("B7"), space("B5"))).toBe(true);
+			expect(game.doMove(space("C2"), space("C4"))).toBe(true);
+			expect(game.doMove(space("C7"), space("C5"))).toBe(true);
+			expect(game.doMove(space("D2"), space("D4"))).toBe(true);
+			expect(game.doMove(space("D7"), space("D5"))).toBe(true);
+			expect(game.doMove(space("E2"), space("E4"))).toBe(true);
+			expect(game.doMove(space("E7"), space("E5"))).toBe(true);
+			expect(game.doMove(space("F2"), space("F4"))).toBe(true);
+			expect(game.doMove(space("F7"), space("F5"))).toBe(true);
+			expect(game.doMove(space("G2"), space("G4"))).toBe(true);
+			expect(game.doMove(space("G7"), space("G5"))).toBe(true);
+			expect(game.doMove(space("H2"), space("H4"))).toBe(true);
+			expect(game.doMove(space("H7"), space("H5"))).toBe(true);
+
+			expect(game.doMove(space("A4"), space("B5"))).toBe(true);
+			expect(game.doMove(space("C5"), space("B4"))).toBe(true);
+
+			expect(game.doMove(space("C4"), space("D5"))).toBe(true);
+			expect(game.doMove(space("E5"), space("D4"))).toBe(true);
+
+			expect(game.doMove(space("E4"), space("F5"))).toBe(true);
+			expect(game.doMove(space("G5"), space("F4"))).toBe(true);
+
+			expect(game.doMove(space("G4"), space("H5"))).toBe(true);
+
+			expect(game.doMove(space("G8"), space("F6"))).toBe(true);
+			expect(game.doMove(space("G1"), space("F3"))).toBe(true);
+
+			expect(game.doMove(space("E8"), space("G8"))).toBe(false);
+		});
+
 		it("should allow castling", function() {
-			//
+			expect(game.doMove(space("F8"), space("D6"))).toBe(true);
+			expect(game.doMove(space("F1"), space("H3"))).toBe(true);
+
+			expect(game.doMove(space("E8"), space("G8"))).toBe(true);
+		});
+
+		it("should not allow castling to put the king in danger", function() {
+			expect(game.doMove(space("F3"), space("D4"))).toBe(true);
+			expect(game.doMove(space("F8"), space("F7"))).toBe(true);
+			expect(game.doMove(space("D4"), space("C6"))).toBe(true);
+			expect(game.doMove(space("F7"), space("G7"))).toBe(true);
+
+			expect(game.doMove(space("E1"), space("G1"))).toBe(false);
 		});
 
 		it("should detect a draw", function() {
-			//
+			expect(game.doMove(space("C1"), space("F4"))).toBe(true);
+			expect(game.doMove(space("G8"), space("H7"))).toBe(true);
+			expect(game.doMove(space("F4"), space("G5"))).toBe(true);
+			expect(game.doMove(space("B8"), space("C6"))).toBe(true);
+			expect(game.doMove(space("G5"), space("F6"))).toBe(true);
+			expect(game.doMove(space("A8"), space("B8"))).toBe(true);
+			expect(game.doMove(space("F6"), space("G7"))).toBe(true);
+			expect(game.doMove(space("D8"), space("H4"))).toBe(true);
+			expect(game.doMove(space("E1"), space("D2"))).toBe(true);
+			expect(game.doMove(space("H4"), space("H5"))).toBe(true);
+			expect(game.doMove(space("A1"), space("A5"))).toBe(true);
+			expect(game.doMove(space("C6"), space("A5"))).toBe(true);
+			expect(game.doMove(space("D1"), space("C1"))).toBe(true);
+			expect(game.doMove(space("H5"), space("H3"))).toBe(true);
+			expect(game.doMove(space("C1"), space("C8"))).toBe(true);
+			expect(game.doMove(space("H3"), space("H1"))).toBe(true);
+			expect(game.doMove(space("C8"), space("B8"))).toBe(true);
+			expect(game.doMove(space("H1"), space("B1"))).toBe(true);
+			expect(game.doMove(space("B8"), space("D6"))).toBe(true);
+			expect(game.doMove(space("B1"), space("F1"))).toBe(true);
+			expect(game.doMove(space("D6"), space("A6"))).toBe(true);
+			expect(game.doMove(space("F1"), space("F5"))).toBe(true);
+			expect(game.doMove(space("A6"), space("A5"))).toBe(true);
+			expect(game.doMove(space("F5"), space("D5"))).toBe(true);
+			expect(game.doMove(space("D2"), space("E2"))).toBe(true);
+			expect(game.doMove(space("D5"), space("D8"))).toBe(true);
+			expect(game.doMove(space("A5"), space("D8"))).toBe(true);
+			expect(game.doMove(space("B4"), space("B3"))).toBe(true);
+			expect(game.doMove(space("D8"), space("D7"))).toBe(true);
+			expect(game.doMove(space("B3"), space("B2"))).toBe(true);
+			expect(game.doMove(space("E2"), space("D2"))).toBe(true);
+			expect(game.doMove(space("B2"), space("B1"), "queen")).toBe(true);
+			expect(game.doMove(space("D7"), space("E7"))).toBe(true);
+			expect(game.doMove(space("B1"), space("C2"))).toBe(true);
+			expect(game.doMove(space("D2"), space("C2"))).toBe(true);
+			expect(game.doMove(space("H7"), space("G6"))).toBe(true);
+			expect(game.doMove(space("C2"), space("D3"))).toBe(true);
+			expect(game.doMove(space("G6"), space("H5"))).toBe(true);
+			expect(game.doMove(space("D3"), space("E4"))).toBe(true);
+			expect(game.doMove(space("H5"), space("G4"))).toBe(true);
+			expect(game.doMove(space("E7"), space("A7"))).toBe(true);
+			expect(game.doMove(space("G4"), space("H3"))).toBe(true);
+			expect(game.doMove(space("E4"), space("F3"))).toBe(true);
+			expect(game.doMove(space("H3"), space("H4"))).toBe(true);
+			expect(game.doMove(space("G7"), space("E5"))).toBe(true);
+			expect(game.doMove(space("H4"), space("H3"))).toBe(true);
+			expect(game.doMove(space("E5"), space("G3"))).toBe(true);
+			expect(game.isDraw).toBe(true);
 		});
 	});
 });

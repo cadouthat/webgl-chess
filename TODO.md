@@ -3,6 +3,7 @@
 * UI (matchmaking, chat, resignation, game outcome)
 * Animations
 * Turn timers
+* Enforce draws by the 50 move rule
 * Advanced move indicators (red glow for check, etc.)
 * Optimizations for rule processing
 * Loading screen - async loading for models
