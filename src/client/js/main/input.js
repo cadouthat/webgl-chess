@@ -2,6 +2,23 @@ var lastMouseX;
 var lastMouseY;
 var mouseRB = false;
 
+function getKeyName(event)
+{
+	if(!event.key)
+	{
+		switch(event.keyCode)
+		{
+		case 27:
+			event.key = "Escape";
+			break;
+		case 13:
+			event.key = "Enter";
+			break;
+		}
+	}
+	return event;
+}
+
 $(window).ready(function(){
 	$("#glview").mousemove(function(event){
 
@@ -18,17 +35,30 @@ $(window).ready(function(){
 
 		updateHover();
 	});
+	$("#chat_entry").keydown(function(event){
+
+		getKeyName(event);
+
+		switch(event.key)
+		{
+		case "Escape":
+			$(this).val("");
+			$(this).blur();
+			return false;
+
+		case "Enter":
+			if($(this).val().length)
+			{
+				client.chat($(this).val());
+			}
+			$(this).val("");
+			$(this).blur();
+			return false;
+		}
+	});
 	$(document).keydown(function(event){
 
-		if(!event.key)
-		{
-			switch(event.keyCode)
-			{
-			case 27:
-				event.key = "Escape";
-				break;
-			}
-		}
+		getKeyName(event);
 
 		switch(event.key)
 		{
@@ -38,6 +68,9 @@ $(window).ready(function(){
 				activeSpace = null;
 				updateHover();
 			}
+			break;
+		case "Enter":
+			$("#chat_entry").focus();
 			break;
 		}
 	});

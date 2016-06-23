@@ -29,21 +29,51 @@ wss.on("connection", function(sock) {
 				sock.game.doMove(msg.from, msg.to, msg.promoteTo))
 			{
 				//Relay move to opponent
-				sock.partner.send(JSON.stringify({
-					"type": "move",
-					"from": msg.from,
-					"to": msg.to,
-					"promoteTo": msg.promoteTo
-				}));
-				//TODO - check for end of game
+				if(sock.partner)
+				{
+					sock.partner.send(JSON.stringify({
+						"type": "move",
+						"from": msg.from,
+						"to": msg.to,
+						"promoteTo": msg.promoteTo
+					}));
+				}
 			}
 			else
 			{
 				console.log("Invalid move detected!");
 				//TODO - log game/player details
+				sock.close();
 				//TODO - terminate session
 			}
 			break;
+		case "chat":
+			//Simply relay the message
+			if(sock.partner)
+			{
+				sock.partner.send(JSON.stringify({
+					"type": "chat",
+					"text": msg.text,
+					"player": sock.assignedColor
+				}));
+			}
+			break;
+		}
+	});
+
+	sock.on("close", function() {
+		//If a partner is connected, notify them
+		if(sock.partner)
+		{
+			sock.partner.send(JSON.stringify({
+				"type": "leave"
+			}));
+			sock.partner.partner = null;
+		}
+		//Remove from queue
+		if(sessionWaiting.length && sessionWaiting[0] == sock)
+		{
+			sessionWaiting.splice(0, 1);
 		}
 	});
 

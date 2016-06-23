@@ -1,8 +1,7 @@
-* Server handling for disconnects
-* UI (chat, resignation)
+* UI (chat, promotion)
 * Rotate camera upon player assignment
 * Animations
-* Turn timers
+* Turn timer UI and enforcement
 * Enforce draws by the 50 move rule
 * Advanced move indicators (red glow for check, etc.)
 * Optimizations for rule processing

@@ -12,6 +12,23 @@ function setGameResult(str)
 	$("#game_over").text(str);
 }
 
+function displayChat(player, text)
+{
+	if(player)
+	{
+		player += ": ";
+	}
+	else player = "";
+	var box = $("#chat_box");
+	box.append(
+		$("<p/>").append(
+			$("<span/>").append(document.createTextNode(player)),
+			document.createTextNode(text)
+		)
+	);
+	box.scrollTop(box[0].scrollHeight);
+}
+
 $(window).ready(function()
 {
 	initGlContext();
@@ -27,6 +44,7 @@ $(window).ready(function()
 
 	//Create client and setup handlers
 	client = new ChessClient();
+	client.displayChat = displayChat;
 	client.update = function(client)
 	{
 		if(client.connected)
@@ -37,16 +55,21 @@ $(window).ready(function()
 			}
 			else
 			{
-				if(game.isCheckmate)
+				//TODO - game ended by expired turn timer
+				if(client.opponentLeft)
+				{
+					setGameResult("Victory!");
+					setGameStatus("Opponent left", false);
+				}
+				else if(game.isCheckmate)
 				{
 					setGameResult((game.turn == client.myColor) ? "Defeat!" : "Victory!");
-					//TODO other end game scenarios
 					setGameStatus("No legal moves", false);
 				}
 				else if(game.isDraw)
 				{
 					setGameResult("Draw!");
-					//TODO other end game scenarios
+					//TODO - distinguish stalemate from 50 move rule
 					setGameStatus("No legal moves", false);
 				}
 				else
