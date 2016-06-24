@@ -38,10 +38,11 @@ function draw(msTime)
 
 	//Compute piece distances from camera
 	var willDrawGlow = false;
-	for(var i = 0; i < game.pieces.length; i++)
+	for(var i = 0; i < renderer.pieces.length; i++)
 	{
-		game.pieces[i].viewDistance = getSpaceWorldPosition(game.pieces[i].position).sub(cam.getEye()).len();
-		if(game.pieces[i].glowColor)
+		var piece = renderer.pieces[i];
+		piece.viewDistance = piece.worldPosition.sub(cam.getEye()).len();
+		if(piece.glowColor)
 		{
 			willDrawGlow = true;
 		}
@@ -50,15 +51,15 @@ function draw(msTime)
 	if(willDrawGlow)
 	{
 		//Sort pieces by distance (far first)
-		game.pieces.sort(function(a, b) {
+		renderer.pieces.sort(function(a, b) {
 			return b.viewDistance - a.viewDistance;
 		});
 	}
 
 	//Draw pieces in order
-	for(var i = 0; i < game.pieces.length; i++)
+	for(var i = 0; i < renderer.pieces.length; i++)
 	{
-		var piece = game.pieces[i];
+		var piece = renderer.pieces[i];
 
 		//If the piece is glowing, draw the glow first
 		if(piece.glowColor)
@@ -70,7 +71,7 @@ function draw(msTime)
 		}
 
 		//Bind texture and draw piece
-		gl.bindTexture(gl.TEXTURE_2D, (piece.owner == "white") ? tex_white_marble : tex_black_marble);
+		gl.bindTexture(gl.TEXTURE_2D, (piece.gamePiece.owner == "white") ? tex_white_marble : tex_black_marble);
 		drawPiece(piece);
 	}
 
@@ -222,16 +223,16 @@ function drawPiece(piece, shader)
 {
 	//Translate to final position
 	mvp.pushModel();
-	mvp.multModel(mat4.translate(getSpaceWorldPosition(piece.position)));
+	mvp.multModel(mat4.translate(piece.worldPosition));
 
 	//Black pieces need to be flipped around
-	if(piece.owner == "black")
+	if(piece.gamePiece.owner == "black")
 	{
 		mvp.multModel(mat4.rotate(new vec3(0, 1, 0), Math.PI));
 	}
 
 	//Draw the piece model for this type
-	drawModel(piece.constructor.model, shader);
+	drawModel(piece.gamePiece.constructor.model, shader);
 
 	//Restore model matrix
 	mvp.popModel();

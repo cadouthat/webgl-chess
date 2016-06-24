@@ -1,4 +1,5 @@
 var game;
+var renderer;
 
 $(window).ready(function()
 {
@@ -7,8 +8,9 @@ $(window).ready(function()
 	//Initial resize to be safe
 	resizeCanvas();
 
-	//Set up game state
+	//Set up game state and renderer
 	game = new ChessGame();
+	renderer = new ChessRenderer(game);
 
 	//Start main draw loop
 	draw(performance.now());

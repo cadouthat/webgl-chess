@@ -8,4 +8,7 @@ function update(msTime)
 
 	//Animate camera movement
 	cam.animate(span);
+
+	//Track and animate chess pieces
+	renderer.update(span);
 }

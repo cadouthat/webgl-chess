@@ -19,9 +19,9 @@ function updateHover()
 	hoverSpace = null;
 	glowSpace = null;
 	pendingMove = null;
-	for(var i = 0; i < game.pieces.length; i++)
+	for(var i = 0; i < renderer.pieces.length; i++)
 	{
-		game.pieces[i].glowColor = null;
+		renderer.pieces[i].glowColor = null;
 	}
 
 	//No interaction if it is not my turn
@@ -35,7 +35,7 @@ function updateHover()
 	if(activeSpace)
 	{
 		//It should always be a piece
-		var activePiece = game.pieceAt(activeSpace);
+		var activePiece = renderer.pieceAt(activeSpace);
 		if(activePiece)
 		{
 			activePiece.glowColor = greenGlowColor;
@@ -54,12 +54,12 @@ function updateHover()
 	var uMin = null;
 
 	//Check pieces
-	for(var i = 0; i < game.pieces.length; i++)
+	for(var i = 0; i < renderer.pieces.length; i++)
 	{
-		var piece = game.pieces[i];
-		var mdl = piece.constructor.model;
+		var piece = renderer.pieces[i];
+		var mdl = piece.gamePiece.constructor.model;
 		//Get world position
-		var base = getSpaceWorldPosition(piece.position);
+		var base = piece.worldPosition;
 		var top = base.add(new vec3(0, mdl.maxPoint.y, 0));
 		//Approximate radius with largest horizontal dimension
 		var rad = [mdl.minPoint.x, mdl.minPoint.z, mdl.maxPoint.x, mdl.maxPoint.z].reduce(function(prev, cur){
@@ -70,7 +70,7 @@ function updateHover()
 		u = intersectLineCylinder(start, dir, base, top, rad);
 		if(u != null && (uMin == null || u < uMin))
 		{
-			hoverSpace = piece.position;
+			hoverSpace = piece.gamePiece.position;
 			uMin = u;
 		}
 	}
@@ -98,9 +98,9 @@ function updateHover()
 	//Determine highlight for hover
 	if(hoverSpace && !game.equalSpaces(hoverSpace, activeSpace))
 	{
-		var hoverPiece = game.pieceAt(hoverSpace);
+		var hoverPiece = renderer.pieceAt(hoverSpace);
 		//Highlight my own pieces to select them
-		if(hoverPiece && hoverPiece.owner == client.myColor)
+		if(hoverPiece && hoverPiece.gamePiece.owner == client.myColor)
 		{
 			hoverPiece.glowColor = whiteGlowColor;
 		}
