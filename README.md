@@ -7,7 +7,7 @@ The client source is bundled into a release with a python script. With your work
 The game server requires Node.js. Copy the **src/server** directory to the destired location. From there, run `npm install`. To start the server, run `node main.js`.
 
 ## Automated Tests
-Coming soon..
+Tests are run with Jasmine, which is included in the release builds. To run tests on a release, simply open **testing/SpecRunner.html** in your desired browser.
 
 ---
 
