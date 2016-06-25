@@ -25,3 +25,12 @@ function displayChat(player, text)
 	);
 	box.scrollTop(box[0].scrollHeight);
 }
+
+function showPromotionSelector()
+{
+	$("#promotion").css("display", "block");
+}
+function hidePromotionSelector()
+{
+	$("#promotion").css("display", "none");
+}

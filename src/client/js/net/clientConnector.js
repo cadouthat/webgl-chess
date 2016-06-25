@@ -29,14 +29,20 @@ function initClient()
 				else if(game.isDraw)
 				{
 					setGameResult("Draw!");
-					//TODO - distinguish stalemate from 50 move rule
 					setGameStatus("No legal moves", false);
 				}
 				else
 				{
 					if(game.turn == client.myColor)
 					{
-						setGameStatus("Your move, " + game.turn, false);
+						if(pendingPromotionMove)
+						{
+							setGameStatus("Promotion choice", false);
+						}
+						else
+						{
+							setGameStatus("Your move, " + game.turn, false);
+						}
 					}
 					else
 					{

@@ -232,7 +232,8 @@ function drawPiece(piece, shader)
 	}
 
 	//Draw the piece model for this type
-	drawModel(piece.gamePiece.constructor.model, shader);
+	var model = (piece.displayType || piece.gamePiece.constructor).model;
+	drawModel(model, shader);
 
 	//Restore model matrix
 	mvp.popModel();

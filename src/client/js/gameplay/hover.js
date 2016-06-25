@@ -31,6 +31,13 @@ function updateHover()
 		return;
 	}
 
+	//Pending promotion stays highlighted
+	if(promotionDisplayPiece)
+	{
+		promotionDisplayPiece.glowColor = greenGlowColor;
+		return;
+	}
+
 	//Active space stays highlighted
 	if(activeSpace)
 	{

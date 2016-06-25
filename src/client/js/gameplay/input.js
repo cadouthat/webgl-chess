@@ -1,6 +1,9 @@
 var lastMouseX;
 var lastMouseY;
 var mouseRB = false;
+var pendingPromotionMove = null;
+var promotionDisplayPiece = null;
+var promotionChoiceInd = 0;
 
 function getKeyName(event)
 {
@@ -17,6 +20,44 @@ function getKeyName(event)
 		}
 	}
 	return event;
+}
+
+function updatePromotionChoice()
+{
+	//Display selected model
+	var choiceList = [ChessQueen, ChessBishop, ChessKnight, ChessRook];
+
+	while(promotionChoiceInd < 0) promotionChoiceInd += choiceList.length;
+	while(promotionChoiceInd >= choiceList.length) promotionChoiceInd -= choiceList.length;
+	promotionDisplayPiece.promotionType = choiceList[promotionChoiceInd];
+}
+function promotionPrev()
+{
+	promotionChoiceInd--;
+	updatePromotionChoice();
+}
+function promotionNext()
+{
+	promotionChoiceInd++;
+	updatePromotionChoice();
+}
+function promotionConfirm()
+{
+	var promoteTo = promotionDisplayPiece.promotionType.pieceName;
+	if(game.doMove(pendingPromotionMove.from, pendingPromotionMove.to, promoteTo))
+	{
+		//Notify the server
+		client.move(pendingPromotionMove.from,
+			pendingPromotionMove.to,
+			promoteTo);
+	}
+	//Deactivate promotion mode
+	pendingPromotionMove = null;
+	promotionDisplayPiece.promotionType = null;
+	promotionDisplayPiece.overridePosition = null;
+	promotionDisplayPiece = null;
+	hidePromotionSelector();
+	updateHover();
 }
 
 $(window).ready(function(){
@@ -92,21 +133,25 @@ $(window).ready(function(){
 		case 1:
 			if(pendingMove)
 			{
-				var promoteTo = null;
 				if(pendingMove.promotion)
 				{
-					//TODO - prompt for promotion
-					//TEST
-					promoteTo = "queen";
-					//TEST
+					//Begin promotion selection
+					pendingPromotionMove = pendingMove;
+					promotionDisplayPiece = renderer.pieceAt(pendingMove.from);
+					promotionChoiceInd = 0;
+					promotionDisplayPiece.overridePosition = pendingMove.to;
+					updatePromotionChoice();
+					showPromotionSelector();
+					client.update(client);
 				}
-				//Execute highlighted move
-				if(game.doMove(pendingMove.from, pendingMove.to, promoteTo))
+				else
 				{
-					//Notify the server
-					client.move(pendingMove.from,
-						pendingMove.to,
-						promoteTo);
+					//Execute highlighted move
+					if(game.doMove(pendingMove.from, pendingMove.to))
+					{
+						//Notify the server
+						client.move(pendingMove.from, pendingMove.to);
+					}
 				}
 				activeSpace = null;
 			}

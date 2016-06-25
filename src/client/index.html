@@ -19,6 +19,11 @@ https://github.com/cadouthat/webgl-chess
 			<p id="status_text">Loading..</p>
 			<img id="status_wait" src="img/waiting.gif" alt=""/>
 		</div>
+		<div id="promotion">
+			<img class="prev" src="img/prev.png" alt="" onclick="promotionPrev()"/>
+			<img class="next" src="img/next.png" alt="" onclick="promotionNext()"/>
+			<img class="confirm" src="img/confirm.png" alt="" onclick="promotionConfirm()"/>
+		</div>
 		<h1 id="game_over"></h1>
 		<div id="chat">
 			<div id="chat_wrapper"><div id="chat_box">

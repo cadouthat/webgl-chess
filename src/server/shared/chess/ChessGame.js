@@ -40,6 +40,7 @@ function ChessGame()
 		var obj = new piece.constructor();
 		obj.owner = piece.owner;
 		obj.position = [piece.position[0], piece.position[1]];
+		obj.wasPromoted = piece.wasPromoted;
 		return obj;
 	};
 
@@ -93,6 +94,7 @@ function ChessGame()
 		var piece = new type();
 		piece.owner = owner;
 		piece.position = [position[0], position[1]];
+		piece.wasPromoted = false;
 		return piece;
 	};
 
@@ -345,9 +347,12 @@ function ChessGame()
 		if(move.promotion)
 		{
 			//Remove old piece
+			move.promotion.wasPromoted = true;
 			this._removePiece(move.promotion);
 			//Add new piece at same position
-			this.pieces.push(this._createPiece(this.turn, move.promoteTo, move.promotion.position));
+			var newPiece = this._createPiece(this.turn, move.promoteTo, move.promotion.position);
+			newPiece.wasPromoted = true;
+			this.pieces.push(newPiece);
 		}
 		//Swap turns
 		this.turn = (this.turn == "white") ? "black" : "white";

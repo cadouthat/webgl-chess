@@ -39,10 +39,19 @@ function ChessRenderer(game)
 
 	this.update = function(span)
 	{
-		//Pre-mark all current pieces as dead
 		for(var i = 0; i < this.pieces.length; i++)
 		{
-			this.pieces[i].death = true;
+			var piece = this.pieces[i];
+			//Pre-mark all current pieces as dead
+			piece.death = true;
+			//Update promoted pieces with their replacements
+			if(piece.gamePiece.constructor == ChessPawn && piece.gamePiece.wasPromoted)
+			{
+				piece.gamePiece = this.game.pieceAt(piece.gamePiece.position);
+				piece.promotionType = piece.gamePiece.constructor;
+				//Display as a pawn until animation completes
+				piece.displayType = ChessPawn;
+			}
 		}
 
 		//Add any game pieces that are missing
@@ -64,6 +73,7 @@ function ChessRenderer(game)
 		for(var i = 0; i < this.pieces.length; i++)
 		{
 			var piece = this.pieces[i];
+			var targetPosition = piece.overridePosition || piece.gamePiece.position;
 			piece.animTimer += span;
 			if(piece.birth)
 			{
@@ -86,10 +96,10 @@ function ChessRenderer(game)
 				}
 				piece.worldPosition.y = this.BIRTH_HEIGHT * p;
 			}
-			else if(!this.game.equalSpaces(piece.gamePosition, piece.gamePiece.position))
+			else if(!this.game.equalSpaces(piece.gamePosition, targetPosition))
 			{
 				var startPosition = getSpaceWorldPosition(piece.gamePosition);
-				var endPosition = getSpaceWorldPosition(piece.gamePiece.position);
+				var endPosition = getSpaceWorldPosition(targetPosition);
 				var p = piece.animTimer / this.MOVE_DURATION;
 				if(p >= 1)
 				{
@@ -97,8 +107,8 @@ function ChessRenderer(game)
 				}
 
 				//Add a vertical arc for knights and castling kings
-				if(piece.gamePiece.constructor == ChessKnight ||
-					(piece.gamePiece.constructor == ChessKing && Math.abs(piece.gamePosition[0] - piece.gamePiece.position[0]) == 2))
+				if((piece.displayType || piece.gamePiece.constructor) == ChessKnight ||
+					(piece.gamePiece.constructor == ChessKing && Math.abs(piece.gamePosition[0] - targetPosition[0]) == 2))
 				{
 					piece.worldPosition.x = startPosition.x + (endPosition.x - startPosition.x) * p;
 					piece.worldPosition.z = startPosition.z + (endPosition.z - startPosition.z) * p;
@@ -131,13 +141,27 @@ function ChessRenderer(game)
 				//Update cached position after animation ends
 				if(p >= 1)
 				{
-					piece.gamePosition = [piece.gamePiece.position[0],
-						piece.gamePiece.position[1]];
+					piece.gamePosition = [targetPosition[0],
+						targetPosition[1]];
 				}
 			}
 			else
 			{
 				piece.animTimer = 0;
+			}
+
+			//Swap promotion models after movement
+			if(piece.promotionType && piece.animTimer == 0)
+			{
+				if(piece.displayType == ChessPawn)
+				{
+					piece.displayType = null;
+				}
+				else
+				{
+					//Display as the pending promotion
+					piece.displayType = piece.promotionType;
+				}
 			}
 		}
 
