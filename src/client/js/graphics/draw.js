@@ -10,25 +10,43 @@ function draw(msTime)
 	mvp.setView(cam.getLookAt());
 	gl.uniform3fv(main_shader.uniform.eye, cam.getEye().asArray());
 
-	if(glowSpace)
+	if(glowSpaces.length)
 	{
-		//Draw spaces behind glow
-		drawBoard(function(ix, iy) {
-			return ix != glowSpace[0] || iy != glowSpace[1];
+		var glowSpaceIndices = [];
+		//Compute glow space distances from camera
+		for(var i = 0; i < glowSpaces.length; i++)
+		{
+			var space = glowSpaces[i];
+			space.viewDistance = getSpaceWorldPosition(space.position).sub(cam.getEye()).len();
+			glowSpaceIndices.push(space.position[1] * 8 + space.position[0]);
+		}
+
+		//Sort glow spaces by distance (far first)
+		glowSpaces.sort(function(a, b) {
+			return b.viewDistance - a.viewDistance;
 		});
 
-		//Draw glow for highlighted space
-		drawGlow(function() {
+		//Draw non-glow spaces behind glow
+		drawBoard(function(ix, iy) {
+			return !glowSpaceIndices.includes(iy * 8 + ix);
+		});
+
+		//Draw glow spaces in order
+		for(var i = 0; i < glowSpaces.length; i++)
+		{
+			var space = glowSpaces[i];
+			//Draw glow
+			drawGlow(function() {
+				drawBoard(function(ix, iy) {
+					return ix == space.position[0] && iy == space.position[1];
+				}, blank_shader);
+			},
+			space.color);
+			//Draw space
 			drawBoard(function(ix, iy) {
-				return ix == glowSpace[0] && iy == glowSpace[1];
-			}, blank_shader);
-		},
-		greenGlowColor);
-
-		//Draw spaces in front of glow
-		drawBoard(function(ix, iy) {
-			return ix == glowSpace[0] && iy == glowSpace[1];
-		});
+				return ix == space.position[0] && iy == space.position[1];
+			});
+		}
 	}
 	else
 	{

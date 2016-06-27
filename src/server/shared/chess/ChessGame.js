@@ -265,7 +265,7 @@ function ChessGame()
 	};
 
 	//Validate a move and return details
-	this.interpretMove = function(from, to)
+	this.interpretMove = function(from, to, blockedBy)
 	{
 		//Validate spaces
 		if(!this.validateSpace(from) ||
@@ -311,9 +311,13 @@ function ChessGame()
 				return null;
 			}
 			//Test check state for the player moving
-			if(testGame.findCheck(this.turn))
+			var wouldCheck = testGame.findCheck(this.turn);
+			if(wouldCheck)
 			{
-				//TODO - specify the threatening piece in the result
+				if(blockedBy)
+				{
+					blockedBy.push(this.pieceAt(wouldCheck.position));
+				}
 				return null;
 			}
 		}

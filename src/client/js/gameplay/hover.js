@@ -1,6 +1,6 @@
 var hoverSpace = null;
 var activeSpace = null;
-var glowSpace = null;
+var glowSpaces = [];
 var pendingMove = null;
 var greenGlowColor = null;
 var whiteGlowColor = null;
@@ -21,7 +21,7 @@ function updateHover()
 
 	//Reset hover/glow state
 	hoverSpace = null;
-	glowSpace = null;
+	glowSpaces = [];
 	pendingMove = null;
 	for(var i = 0; i < renderer.pieces.length; i++)
 	{
@@ -35,10 +35,25 @@ function updateHover()
 		return;
 	}
 
-	//Last opponent move is highlighted
-	if(game.lastMoved)
+	//If player is in check, highlight the threatening piece
+	var inCheckBy = game.findCheck(client.myColor);
+	if(inCheckBy)
 	{
-		renderer.findByGamePiece(game.lastMoved).glowColor = blueGlowColor;
+		renderer.findByGamePiece(inCheckBy).glowColor = redGlowColor;
+		//Also highlight the king red
+		renderer.findByGamePiece(game.findKing(client.myColor)).glowColor = redGlowColor;
+	}
+	else
+	{
+		//Last opponent move is highlighted
+		if(game.lastMoved)
+		{
+			renderer.findByGamePiece(game.lastMoved).glowColor = blueGlowColor;
+			glowSpaces.push({
+				"position": game.lastMoved.lastPosition,
+				"color": blueGlowColor
+			});
+		}
 	}
 
 	//Pending promotion stays highlighted
@@ -124,9 +139,16 @@ function updateHover()
 		else if(activeSpace)
 		{
 			//Check for possible move
-			pendingMove = game.interpretMove(activeSpace, hoverSpace);
+			var blockedBy = [];
+			pendingMove = game.interpretMove(activeSpace, hoverSpace, blockedBy);
 			if(pendingMove != null)
 			{
+				//This move must save the king from danger, so clear any check highlight
+				var kingPiece = game.findKing(client.myColor);
+				if(game.pieceAt(pendingMove.from) != kingPiece)
+				{
+					renderer.findByGamePiece(kingPiece).glowColor = null;
+				}
 				//Highlight whatever lies at the hover location
 				if(hoverPiece)
 				{
@@ -134,7 +156,32 @@ function updateHover()
 				}
 				else
 				{
-					glowSpace = hoverSpace;
+					glowSpaces.push({
+						"position": hoverSpace,
+						"color": greenGlowColor
+					});
+				}
+			}
+			else
+			{
+				//If the move is blocked by an opponent, highlight it
+				if(blockedBy.length)
+				{
+					renderer.findByGamePiece(blockedBy[0]).glowColor = redGlowColor;
+					//Also highlight the king red
+					renderer.findByGamePiece(game.findKing(client.myColor)).glowColor = redGlowColor;
+					//Highlight whatever lies at the hover location
+					if(hoverPiece)
+					{
+						hoverPiece.glowColor = redGlowColor;
+					}
+					else
+					{
+						glowSpaces.push({
+							"position": hoverSpace,
+							"color": redGlowColor
+						});
+					}
 				}
 			}
 		}

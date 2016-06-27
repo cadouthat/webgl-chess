@@ -16,20 +16,20 @@ function initClient()
 			else
 			{
 				//TODO - game ended by expired turn timer
-				if(client.opponentLeft)
-				{
-					setGameResult("Victory!");
-					setGameStatus("Opponent left", false);
-				}
-				else if(game.isCheckmate)
+				if(game.isCheckmate)
 				{
 					setGameResult((game.turn == client.myColor) ? "Defeat!" : "Victory!");
-					setGameStatus("No legal moves", false);
+					setGameStatus(client.opponentLeft ? "Opponent left" : "No legal moves", false);
 				}
 				else if(game.isDraw)
 				{
 					setGameResult("Draw!");
-					setGameStatus("No legal moves", false);
+					setGameStatus(client.opponentLeft ? "Opponent left" : "No legal moves", false);
+				}
+				else if(client.opponentLeft)
+				{
+					setGameResult("Victory!");
+					setGameStatus("Opponent left", false);
 				}
 				else
 				{
