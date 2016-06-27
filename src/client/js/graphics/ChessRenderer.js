@@ -21,10 +21,11 @@ function ChessRenderer(game)
 			"viewDistance": 0,
 			"animTimer": 0
 		});
+		return this.pieces[this.pieces.length - 1];
 	};
 
 	//Find a piece representing a given game piece object
-	this._findByGamePiece = function(gamePiece)
+	this.findByGamePiece = function(gamePiece)
 	{
 		for(var i = 0; i < this.pieces.length; i++)
 		{
@@ -34,7 +35,7 @@ function ChessRenderer(game)
 				return piece;
 			}
 		}
-		return null;
+		return this._add(gamePiece);
 	};
 
 	this.update = function(span)
@@ -58,15 +59,8 @@ function ChessRenderer(game)
 		for(var i = 0; i < this.game.pieces.length; i++)
 		{
 			var gamePiece = this.game.pieces[i];
-			var piece = this._findByGamePiece(gamePiece);
-			if(piece)
-			{
-				piece.death = false;
-			}
-			else
-			{
-				this._add(gamePiece);
-			}
+			var piece = this.findByGamePiece(gamePiece);
+			piece.death = false;
 		}
 
 		//Update animated positions

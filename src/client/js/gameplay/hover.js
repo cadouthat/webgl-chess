@@ -4,6 +4,8 @@ var glowSpace = null;
 var pendingMove = null;
 var greenGlowColor = null;
 var whiteGlowColor = null;
+var blueGlowColor = null;
+var redGlowColor = null;
 
 //Refresh cursor hover selection
 function updateHover()
@@ -13,6 +15,8 @@ function updateHover()
 	{
 		greenGlowColor = new vec3(0.412, 0.98, 0.427).scaleIn(2);
 		whiteGlowColor = new vec3(1.5);
+		blueGlowColor = new vec3(0.3, 0.3, 1.5);
+		redGlowColor = new vec3(1.5, 0.5, 0.5);
 	}
 
 	//Reset hover/glow state
@@ -29,6 +33,12 @@ function updateHover()
 	{
 		activeSpace = null;
 		return;
+	}
+
+	//Last opponent move is highlighted
+	if(game.lastMoved)
+	{
+		renderer.findByGamePiece(game.lastMoved).glowColor = blueGlowColor;
 	}
 
 	//Pending promotion stays highlighted
