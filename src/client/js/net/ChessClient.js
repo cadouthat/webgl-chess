@@ -1,5 +1,6 @@
-function ChessClient()
+function ChessClient(gameIn)
 {
+	this.game = gameIn;
 	//Internal websocket handle
 	this._sock = null;
 	//Current state
@@ -7,10 +8,14 @@ function ChessClient()
 	this.error = false;
 	this.myColor = null;
 	this.opponentLeft = false;
+	this.whiteTimer = settings.turnTimeLimit;
+	this.blackTimer = settings.turnTimeLimit;
+	this.timerFragment = 0;
 	//Handlers for changes in the client state
 	this.update = function(client){};
 	this.opponentMove = function(from, to, promoteToName){};
 	this.displayChat = function(player, msg){};
+	this.displayClock = function(whiteTime, blackTime){};
 
 	this.open = function()
 	{
@@ -18,7 +23,7 @@ function ChessClient()
 		this.close();
 
 		//Open socket to current host on the game data port
-		this._sock = new WebSocket("ws://" + window.location.hostname + ":" + settings.ws_port + "/");
+		this._sock = new WebSocket("ws://" + window.location.hostname + ":" + settings.wsPort + "/");
 
 		//Setup event handlers
 		var _this = this;
@@ -88,6 +93,51 @@ function ChessClient()
 			"text": text
 		});
 		return true;
+	};
+
+	this.isGameActive = function()
+	{
+		alert(this.game);
+		return this.connected && this.myColor && !this.opponentLeft && this.game && !this.game.isCheckmate && !this.game.isDraw;
+	};
+
+	this._formatTime = function(totalSeconds)
+	{
+		var seconds = totalSeconds % 60;
+		var minutes = (totalSeconds - seconds) / 60;
+		return (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+	};
+
+	this._updateClockText = function()
+	{
+		var whiteText = this._formatTime(this.whiteTimer);
+		var blackText = this._formatTime(this.blackTimer);
+		this.displayClock(whiteText, blackText);
+	};
+
+	this.tickTurn = function(span)
+	{
+		//Clock only runs while game is active
+		if(this.isGameActive())
+		{
+			this.timerFragment += span;
+			console.log(this.timerFragment);
+			while(this.timerFragment > 1)
+			{
+				this.timerFragment -= 1;
+				//Reduce the clock for the active player
+				if(this.game.turn == "white")
+				{
+					this.whiteTimer = Math.max(0, this.whiteTimer - 1);
+				}
+				else
+				{
+					this.blackTimer = Math.max(0, this.blackTimer - 1);
+				}
+				//Display the new time
+				this._updateClockText();
+			}
+		}
 	};
 
 	this.close = function()

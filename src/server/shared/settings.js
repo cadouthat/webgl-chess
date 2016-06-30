@@ -1,5 +1,6 @@
 var settings = {
-	"ws_port": 8080
+	"wsPort": 8080,
+	"turnTimeLimit": 900
 };
 
 if(typeof module != "undefined") {

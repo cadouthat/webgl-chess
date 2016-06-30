@@ -10,7 +10,7 @@ var httpServer = http.createServer(function(request, response) {
 		"Access-Control-Allow-Origin": "*"
 	});
 	response.end();
-}).listen(settings.ws_port);
+}).listen(settings.wsPort);
 
 //Global matchmaking queue
 var sessionWaiting = [];

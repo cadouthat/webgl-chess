@@ -12,11 +12,11 @@ $(window).ready(function()
 	game = new ChessGame();
 	renderer = new ChessRenderer(game);
 
-	//Start main draw loop
-	draw(performance.now());
-
 	//Init client and start connection
 	initClient();
+
+	//Start main draw loop
+	draw(performance.now());
 });
 
 $(window).resize(function()

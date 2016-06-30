@@ -9,6 +9,9 @@ function update(msTime)
 	//Animate camera movement
 	cam.animate(span);
 
+	//Update turn clock
+	client.tickTurn(span);
+
 	//Track and animate chess pieces
 	renderer.update(span);
 }

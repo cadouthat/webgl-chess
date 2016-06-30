@@ -3,8 +3,9 @@ var client;
 function initClient()
 {
 	//Create client and setup handlers
-	client = new ChessClient();
+	client = new ChessClient(game);
 	client.displayChat = displayChat;
+	client.displayClock = displayClock;
 	client.update = function(client)
 	{
 		if(client.connected)

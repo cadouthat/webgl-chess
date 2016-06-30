@@ -26,6 +26,12 @@ function displayChat(player, text)
 	box.scrollTop(box[0].scrollHeight);
 }
 
+function displayClock(whiteTime, blackTime)
+{
+	$("#white_timer").children("p").text(whiteTime);
+	$("#black_timer").children("p").text(blackTime);
+}
+
 function showPromotionSelector()
 {
 	$("#promotion").css("display", "block");
