@@ -43,6 +43,10 @@ function ChessClient(gameIn)
 				break;
 			case "move":
 				_this.opponentMove(msg.from, msg.to, msg.promoteTo);
+				//Synchronize time with server
+				_this.whiteTimer = msg.whiteTimer;
+				_this.blackTimer = msg.blackTimer;
+				_this._updateClockText();
 				break;
 			case "leave":
 				_this.opponentLeft = true;
@@ -97,7 +101,6 @@ function ChessClient(gameIn)
 
 	this.isGameActive = function()
 	{
-		alert(this.game);
 		return this.connected && this.myColor && !this.opponentLeft && this.game && !this.game.isCheckmate && !this.game.isDraw;
 	};
 
@@ -121,7 +124,6 @@ function ChessClient(gameIn)
 		if(this.isGameActive())
 		{
 			this.timerFragment += span;
-			console.log(this.timerFragment);
 			while(this.timerFragment > 1)
 			{
 				this.timerFragment -= 1;
