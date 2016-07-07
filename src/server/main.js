@@ -4,6 +4,34 @@ var WebSocketServer = require("ws").Server;
 var settings = require("./shared/settings");
 var ChessGame = require("./shared/chess/ChessGame");
 
+function checkGameTimers(game)
+{
+	//Do nothing if time has already expired
+	if(game.whiteTimer <= 0 || game.blackTimer <= 0)
+	{
+		return false;
+	}
+	//Update timer values
+	var curTime = new Date().getTime();
+	var secondsPassed = Math.round((curTime - game.timerReference) / 1000);
+	game.timerReference = curTime;
+	if(game.turn == "white")
+	{
+		game.whiteTimer -= secondsPassed;
+	}
+	else
+	{
+		game.blackTimer -= secondsPassed;
+	}
+	//Send notifications if time just now expired
+	if(game.whiteTimer <= 0 || game.blackTimer <= 0)
+	{
+		//TODO send messages
+		return false;
+	}
+	return true;
+}
+
 //Set up an HTTP server with cross-origin enabled
 var httpServer = http.createServer(function(request, response) {
 	response.writeHead(200, {
@@ -26,20 +54,9 @@ wss.on("connection", function(sock) {
 		case "move":
 			//Apply move to session game state
 			if(sock.game.turn == sock.assignedColor &&
+				checkGameTimers(sock.game) &&
 				sock.game.doMove(msg.from, msg.to, msg.promoteTo))
 			{
-				//Update timer values
-				var curTime = new Date().getTime();
-				var secondsPassed = Math.round((curTime - sock.game.timerReference) / 1000);
-				sock.game.timerReference = curTime;
-				if(sock.assignedColor == "white")
-				{
-					sock.game.whiteTimer -= secondsPassed;
-				}
-				else
-				{
-					sock.game.blackTimer -= secondsPassed;
-				}
 				//Relay move to opponent
 				if(sock.partner)
 				{
@@ -76,12 +93,20 @@ wss.on("connection", function(sock) {
 	});
 
 	sock.on("close", function() {
+		//Destroy game
+		if(sock.game)
+		{
+			//TODO remove from timer queue
+			sock.game.sessions = null;
+			sock.game = null;
+		}
 		//If a partner is connected, notify them
 		if(sock.partner)
 		{
 			sock.partner.send(JSON.stringify({
 				"type": "leave"
 			}));
+			sock.partner.game = null;
 			sock.partner.partner = null;
 		}
 		//Remove from queue
@@ -98,6 +123,8 @@ wss.on("connection", function(sock) {
 		game.blackTimer = settings.turnTimeLimit;
 		game.timerReference = new Date().getTime();
 		console.log("Session started");
+
+		//TODO add to timer queue
 
 		var partner = sessionWaiting.splice(0, 1)[0];
 		partner.game = game;
@@ -118,3 +145,7 @@ wss.on("connection", function(sock) {
 	}
 	else sessionWaiting.push(sock);
 });
+
+setInterval(function() {
+	//TODO check all game timers
+}, 500);
