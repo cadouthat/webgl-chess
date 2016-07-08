@@ -28,8 +28,8 @@ function updateHover()
 		renderer.pieces[i].glowColor = null;
 	}
 
-	//No interaction if it is not my turn
-	if(game.turn != client.myColor)
+	//No interaction if the game is over or it is not my turn
+	if(!client.isGameActive() || game.turn != client.myColor)
 	{
 		activeSpace = null;
 		return;

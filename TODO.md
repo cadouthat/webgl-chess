@@ -1,4 +1,4 @@
-* Turn timer UI and enforcement
+* Clean up TODO notes
 * Sound effects
 * Warning on mobile
 * Game logging system

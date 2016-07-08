@@ -8,6 +8,7 @@ function ChessClient(gameIn)
 	this.error = false;
 	this.myColor = null;
 	this.opponentLeft = false;
+	this.outOfTime = null;
 	this.whiteTimer = settings.turnTimeLimit;
 	this.blackTimer = settings.turnTimeLimit;
 	this.timerFragment = 0;
@@ -53,6 +54,17 @@ function ChessClient(gameIn)
 				break;
 			case "chat":
 				_this.displayChat(msg.player, msg.text);
+				break;
+			case "outOfTime":
+				_this.outOfTime = msg.player;
+				if(msg.player == "white")
+				{
+					_this.whiteTimer = 0;
+				}
+				else
+				{
+					_this.blackTimer = 0;
+				}
 				break;
 			}
 			_this.update(_this);
@@ -101,7 +113,7 @@ function ChessClient(gameIn)
 
 	this.isGameActive = function()
 	{
-		return this.connected && this.myColor && !this.opponentLeft && this.game && !this.game.isCheckmate && !this.game.isDraw;
+		return this.connected && this.myColor && !this.opponentLeft && this.game && !this.game.isCheckmate && !this.game.isDraw && !this.outOfTime;
 	};
 
 	this._formatTime = function(totalSeconds)

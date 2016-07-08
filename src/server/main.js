@@ -11,6 +11,11 @@ function checkGameTimers(game)
 	{
 		return false;
 	}
+	//Do nothing if the game has ended
+	if(game.isCheckmate || game.isDraw)
+	{
+		return false;
+	}
 	//Update timer values
 	var curTime = new Date().getTime();
 	var secondsPassed = Math.round((curTime - game.timerReference) / 1000);
@@ -26,7 +31,16 @@ function checkGameTimers(game)
 	//Send notifications if time just now expired
 	if(game.whiteTimer <= 0 || game.blackTimer <= 0)
 	{
-		//TODO send messages
+		if(game.sessions)
+		{
+			//Send out of time notification to both players
+			var msg = {
+				"type": "outOfTime",
+				"player": (game.whiteTimer <= 0) ? "white" : "black"
+			};
+			game.sessions[0].send(JSON.stringify(msg));
+			game.sessions[1].send(JSON.stringify(msg));
+		}
 		return false;
 	}
 	return true;
@@ -42,6 +56,9 @@ var httpServer = http.createServer(function(request, response) {
 
 //Global matchmaking queue
 var sessionWaiting = [];
+
+//Global list of active games
+var activeGames = [];
 
 //Listen for websocket requests on the http server
 var wss = new WebSocketServer({ "server": httpServer });
@@ -75,7 +92,6 @@ wss.on("connection", function(sock) {
 				console.log("Invalid move detected!");
 				//TODO - log game/player details
 				sock.close();
-				//TODO - terminate session
 			}
 			break;
 		case "chat":
@@ -96,7 +112,13 @@ wss.on("connection", function(sock) {
 		//Destroy game
 		if(sock.game)
 		{
-			//TODO remove from timer queue
+			//Remove from active games
+			var i = activeGames.indexOf(sock.game);
+			if(i >= 0)
+			{
+				activeGames.splice(i, 1);
+			}
+			//Disconnect players from game
 			sock.game.sessions = null;
 			sock.game = null;
 		}
@@ -118,15 +140,15 @@ wss.on("connection", function(sock) {
 
 	if(sessionWaiting.length)
 	{
+		var partner = sessionWaiting.splice(0, 1)[0];
 		var game = new ChessGame();
 		game.whiteTimer = settings.turnTimeLimit;
 		game.blackTimer = settings.turnTimeLimit;
 		game.timerReference = new Date().getTime();
+		game.sessions = [sock, partner];
+		activeGames.push(game);
 		console.log("Session started");
 
-		//TODO add to timer queue
-
-		var partner = sessionWaiting.splice(0, 1)[0];
 		partner.game = game;
 		partner.assignedColor = "white";
 		partner.partner = sock;
@@ -146,6 +168,10 @@ wss.on("connection", function(sock) {
 	else sessionWaiting.push(sock);
 });
 
+//Periodically check turn timers for all active games
 setInterval(function() {
-	//TODO check all game timers
+	for(var i = 0; i < activeGames.length; i++)
+	{
+		checkGameTimers(activeGames[i]);
+	}
 }, 500);
