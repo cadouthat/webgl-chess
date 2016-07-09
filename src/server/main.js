@@ -27,11 +27,23 @@ function checkGameTimers(game)
 	game.timerReference += secondsPassed;
 	if(game.turn == "white")
 	{
-		game.whiteTimer -= secondsPassed;
+		game.whiteTimer = Math.max(0, game.whiteTimer - secondsPassed);
 	}
 	else
 	{
-		game.blackTimer -= secondsPassed;
+		game.blackTimer = Math.max(0, game.blackTimer - secondsPassed);
+	}
+	//Keep clients in sync to avoid browser timing issues
+	if(game.sessions)
+	{
+		//Send out of time notification to both players
+		var msg = {
+			"type": "sync",
+			"whiteTimer": game.whiteTimer,
+			"blackTimer": game.blackTimer
+		};
+		game.sessions[0].send(JSON.stringify(msg));
+		game.sessions[1].send(JSON.stringify(msg));
 	}
 	//Send notifications if time just now expired
 	if(game.whiteTimer <= 0 || game.blackTimer <= 0)
@@ -86,9 +98,7 @@ wss.on("connection", function(sock) {
 						"type": "move",
 						"from": msg.from,
 						"to": msg.to,
-						"promoteTo": msg.promoteTo,
-						"whiteTimer": sock.game.whiteTimer,
-						"blackTimer": sock.game.blackTimer
+						"promoteTo": msg.promoteTo
 					}));
 				}
 			}

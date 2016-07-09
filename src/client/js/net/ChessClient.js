@@ -44,9 +44,12 @@ function ChessClient(gameIn)
 				break;
 			case "move":
 				_this.opponentMove(msg.from, msg.to, msg.promoteTo);
+				break;
+			case "sync":
 				//Synchronize time with server
 				_this.whiteTimer = msg.whiteTimer;
 				_this.blackTimer = msg.blackTimer;
+				_this.timerFragment = 0;
 				_this._updateClockText();
 				break;
 			case "leave":

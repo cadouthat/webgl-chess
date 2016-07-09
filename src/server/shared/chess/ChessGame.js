@@ -12,6 +12,9 @@ function ChessGame()
 {
 	//Pieces on the board
 	this.pieces = [];
+	//Cached piece index by position (column-major)
+	this.piecesByPosition = null;
+	this.piecesByPositionValid = false;
 	//Pieces removed from play
 	this.graveyard = [];
 	//Player currently moving
@@ -108,6 +111,7 @@ function ChessGame()
 				(types instanceof Array) ? types[iCol] : types,
 				[iCol, iRow]));
 		}
+		this.piecesByPositionValid = false;
 	};
 
 	//Helper for finding and removing a piece from the active piece list
@@ -124,6 +128,7 @@ function ChessGame()
 		{
 			this.graveyard.push(piece);
 		}
+		this.piecesByPositionValid = false;
 	};
 
 	//Helper for comparing board spaces
@@ -149,16 +154,35 @@ function ChessGame()
 	//Find the piece at position (if any)
 	this.pieceAt = function(pos)
 	{
-		//TODO - optimize with a by-position array
-		for(var i = 0; i < this.pieces.length; i++)
+		//Update piece position cache
+		if(!this.piecesByPositionValid)
 		{
-			if(this.pieces[i].position[0] == pos[0] &&
-				this.pieces[i].position[1] == pos[1])
+			if(this.piecesByPosition)
 			{
-				return this.pieces[i];
+				//Clear the existing array
+				for(var i = 0; i < 8 * 8; i++)
+				{
+					this.piecesByPosition[i] = null;
+				}
 			}
+			else
+			{
+				//Initialize new array
+				this.piecesByPosition = [];
+				for(var i = 0; i < 8 * 8; i++)
+				{
+					this.piecesByPosition.push(null);
+				}
+			}
+			//Assign existing pieces to current indices
+			for(var i = 0; i < this.pieces.length; i++)
+			{
+				var piece = this.pieces[i];
+				this.piecesByPosition[piece.position[0] * 8 + piece.position[1]] = piece;
+			}
+			this.piecesByPositionValid = true;
 		}
-		return null;
+		return this.piecesByPosition[pos[0] * 8 + pos[1]];
 	};
 
 	//Find a player's king
@@ -365,6 +389,8 @@ function ChessGame()
 			newPiece.wasPromoted = true;
 			this.pieces.push(newPiece);
 		}
+		//Flag position cache to be refreshed
+		this.piecesByPositionValid = false;
 		//Swap turns
 		this.turn = (this.turn == "white") ? "black" : "white";
 		return true;
