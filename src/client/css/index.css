@@ -225,3 +225,17 @@ body
 	transform: translate(-50%, -50%);
 	text-align: center;
 }
+
+#toggle_mute
+{
+	position: absolute;
+	left: 10px;
+	top: 10px;
+	width: 32px;
+	cursor: pointer;
+	opacity: 0.5;
+}
+#toggle_mute:hover
+{
+	transform: scale(1.1, 1.1);
+}

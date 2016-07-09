@@ -29,6 +29,8 @@ https://github.com/cadouthat/webgl-chess
 		<canvas id="glview">
 			<p>If you're seeing this, your browser does not support HTML5 canvas</p>
 		</canvas>
+		<img id="toggle_mute" src="img/unmute.png" alt="" onclick="toggleMute()"/>
+		<img style="display: none;" src="img/mute.png" alt=""/>
 		<div id="status">
 			<p id="status_text">Loading..</p>
 			<img id="status_wait" src="img/waiting.gif" alt=""/>

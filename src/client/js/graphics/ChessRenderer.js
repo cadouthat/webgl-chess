@@ -24,9 +24,27 @@ function ChessRenderer(game)
 		return this.pieces[this.pieces.length - 1];
 	};
 
+	//Update promoted pieces with their replacements
+	this._updatePromotedPieces = function()
+	{
+		for(var i = 0; i < this.pieces.length; i++)
+		{
+			var piece = this.pieces[i];
+			//Update promoted pieces with their replacements
+			if(piece.gamePiece.constructor == ChessPawn && piece.gamePiece.wasPromoted)
+			{
+				piece.gamePiece = this.game.pieceAt(piece.gamePiece.position);
+				piece.promotionType = piece.gamePiece.constructor;
+				//Display as a pawn until animation completes
+				piece.displayType = ChessPawn;
+			}
+		}
+	};
+
 	//Find a piece representing a given game piece object
 	this.findByGamePiece = function(gamePiece)
 	{
+		this._updatePromotedPieces();
 		for(var i = 0; i < this.pieces.length; i++)
 		{
 			var piece = this.pieces[i];
@@ -40,19 +58,13 @@ function ChessRenderer(game)
 
 	this.update = function(span)
 	{
+		this._updatePromotedPieces();
+
+		//Pre-mark all current pieces as dead
 		for(var i = 0; i < this.pieces.length; i++)
 		{
 			var piece = this.pieces[i];
-			//Pre-mark all current pieces as dead
 			piece.death = true;
-			//Update promoted pieces with their replacements
-			if(piece.gamePiece.constructor == ChessPawn && piece.gamePiece.wasPromoted)
-			{
-				piece.gamePiece = this.game.pieceAt(piece.gamePiece.position);
-				piece.promotionType = piece.gamePiece.constructor;
-				//Display as a pawn until animation completes
-				piece.displayType = ChessPawn;
-			}
 		}
 
 		//Add any game pieces that are missing

@@ -388,6 +388,8 @@ function ChessGame()
 			var newPiece = this._createPiece(this.turn, move.promoteTo, move.promotion.position);
 			newPiece.wasPromoted = true;
 			this.pieces.push(newPiece);
+			this.lastMoved = newPiece;
+			newPiece.lastPosition = move.promotion.lastPosition;
 		}
 		//Flag position cache to be refreshed
 		this.piecesByPositionValid = false;

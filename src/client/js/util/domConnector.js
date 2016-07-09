@@ -40,3 +40,8 @@ function hidePromotionSelector()
 {
 	$("#promotion").css("display", "none");
 }
+
+function displayMuteStatus(muted)
+{
+	$("#toggle_mute").attr("src", muted ? "img/mute.png" : "img/unmute.png");
+}

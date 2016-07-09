@@ -17,3 +17,9 @@ function playSoundOnce(obj)
 		playSound(obj);
 	}
 }
+
+function toggleMute()
+{
+	muteAllAudio = !muteAllAudio;
+	displayMuteStatus(muteAllAudio);
+}
