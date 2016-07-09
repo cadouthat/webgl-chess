@@ -1,4 +1,11 @@
-<!DOCTYPE html>
+<?php
+
+require_once("lib/Mobile_Detect.php");
+$detect = new Mobile_Detect;
+
+$showMobileWarning = ($detect->isMobile() && !isset($_GET['mobileConfirm']));
+
+?><!DOCTYPE html>
 <!--
 Copyright 2016 Connor Douthat
 https://github.com/cadouthat/webgl-chess
@@ -10,9 +17,15 @@ https://github.com/cadouthat/webgl-chess
 		<link rel="stylesheet" type="text/css" href="css/index.css"/>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
 		<link href='https://fonts.googleapis.com/css?family=Dosis:400,700|Oleo+Script:400' rel='stylesheet' type='text/css'>
-		<script src="app.js"></script>
+		<?php if(!$showMobileWarning): ?><script src="app.js"></script><?php endif; ?>
 	</head>
 	<body>
+		<?php if($showMobileWarning): ?>
+		<div id="mobile_warning">
+			<h2>Note to mobile users</h2>
+			<p>This game is not likely to be very playable on mobile devices, and loading it could use a good chunk of data. <a href="?mobileConfirm=true">Proceed at your own risk.</a></p>
+		</div>
+		<?php else: ?>
 		<canvas id="glview">
 			<p>If you're seeing this, your browser does not support HTML5 canvas</p>
 		</canvas>
@@ -34,6 +47,7 @@ https://github.com/cadouthat/webgl-chess
 			</div></div>
 			<input id="chat_entry" type="text" placeholder="Press enter to chat"/>
 		</div>
+		<?php endif; ?>
 		<p id="footer">&copy; 2016 Connor Douthat - <a target="_blank" href="https://github.com/cadouthat/webgl-chess">view source</a></p>
 	</body>
 </html>

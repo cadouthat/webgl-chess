@@ -34,7 +34,8 @@ if os.path.exists(release):
 os.mkdir(release)
 
 # Copy static files
-shutil.copy(source + "index.html", release)
+shutil.copy(source + "index.php", release)
+shutil.copytree(source + "lib/", release + "lib/")
 shutil.copytree(source + "css/", release + "css/")
 shutil.copytree(source + "img/", release + "img/")
 shutil.copytree(source + "mdl/tex/", release + "tex/")
