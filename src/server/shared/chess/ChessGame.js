@@ -199,7 +199,8 @@ function ChessGame()
 		//Dumb brute-force check for any owned piece moving to any position
 		for(var i = 0; i < this.pieces.length; i++)
 		{
-			if(this.pieces[i].owner == this.turn)
+			var srcPiece = this.pieces[i];
+			if(srcPiece.owner == this.turn)
 			{
 				var tmpPos = [0, 0];
 				for(var j = 0; j < 8; j++)
@@ -208,9 +209,15 @@ function ChessGame()
 					for(var k = 0; k < 8; k++)
 					{
 						tmpPos[1] = k;
-						if(this.interpretMove(this.pieces[i].position, tmpPos) != null)
+						//Cannot self capture
+						var destPiece = this.pieceAt(tmpPos);
+						if(destPiece == null || destPiece.owner != this.turn)
 						{
-							return true;
+							//Check if move is legal
+							if(this.interpretMove(srcPiece.position, tmpPos) != null)
+							{
+								return true;
+							}
 						}
 					}
 				}

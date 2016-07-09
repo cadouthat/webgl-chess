@@ -65,6 +65,7 @@ function ChessClient(gameIn)
 				{
 					_this.blackTimer = 0;
 				}
+				_this._updateClockText();
 				break;
 			}
 			_this.update(_this);

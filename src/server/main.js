@@ -16,10 +16,15 @@ function checkGameTimers(game)
 	{
 		return false;
 	}
+	//Wait until at least one second has accumulated
+	var curTime = new Date().getTime() / 1000;
+	if(curTime - game.timerReference < 1)
+	{
+		return true;
+	}
 	//Update timer values
-	var curTime = new Date().getTime();
-	var secondsPassed = Math.round((curTime - game.timerReference) / 1000);
-	game.timerReference = curTime;
+	var secondsPassed = Math.floor(curTime - game.timerReference);
+	game.timerReference += secondsPassed;
 	if(game.turn == "white")
 	{
 		game.whiteTimer -= secondsPassed;
@@ -144,7 +149,7 @@ wss.on("connection", function(sock) {
 		var game = new ChessGame();
 		game.whiteTimer = settings.turnTimeLimit;
 		game.blackTimer = settings.turnTimeLimit;
-		game.timerReference = new Date().getTime();
+		game.timerReference = new Date().getTime() / 1000;
 		game.sessions = [sock, partner];
 		activeGames.push(game);
 		console.log("Session started");
