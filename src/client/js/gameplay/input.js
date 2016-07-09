@@ -133,6 +133,7 @@ $(window).ready(function(){
 		case 1:
 			if(pendingMove)
 			{
+				playSound(move_mp3);
 				if(pendingMove.promotion)
 				{
 					//Begin promotion selection

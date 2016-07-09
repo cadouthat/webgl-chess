@@ -38,6 +38,7 @@ shutil.copy(source + "index.php", release)
 shutil.copytree(source + "lib/", release + "lib/")
 shutil.copytree(source + "css/", release + "css/")
 shutil.copytree(source + "img/", release + "img/")
+shutil.copytree(source + "audio/", release + "audio/")
 shutil.copytree(source + "mdl/tex/", release + "tex/")
 
 # Create temporary directory for JS files
@@ -51,6 +52,10 @@ copyShallow(source + "mdl/", tmp)
 # Create JS files from shaders
 if subprocess.call(["python", "transform_js/wrap_shaders.py", source + "glsl/", tmp]) != 0:
 	failure("Failed to wrap shaders")
+
+# Create JS files to load audio
+if subprocess.call(["python", "transform_js/load_audio.py", source + "audio/", tmp]) != 0:
+	failure("Failed to create audio loaders")
 
 # Bundle temporary files into a single file
 if subprocess.call(["python", "transform_js/bundle_js.py", tmp, release + "app.js"]) != 0:
