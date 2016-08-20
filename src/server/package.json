@@ -2,6 +2,7 @@
 	"name": "webgl-chess-server",
 	"version": "0.0.1",
 	"dependencies": {
-		"ws": "latest"
+		"ws": "latest",
+		"sqlite3": "latest"
 	}
 }

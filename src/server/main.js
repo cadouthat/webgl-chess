@@ -1,5 +1,6 @@
 var http = require("http");
 var WebSocketServer = require("ws").Server;
+var sqlite3 = require('sqlite3').verbose();
 
 var settings = require("./shared/settings");
 var ChessGame = require("./shared/chess/ChessGame");
@@ -57,11 +58,71 @@ function checkGameTimers(game)
 			};
 			game.sessions[0].send(JSON.stringify(msg));
 			game.sessions[1].send(JSON.stringify(msg));
+			game.isOutOfTime = true;
 		}
 		return false;
 	}
 	return true;
 }
+
+function doCleanup()
+{
+	if(db) db.close();
+}
+
+function persistGame(gameObject)
+{
+	db.serialize(function() {
+		db.run("INSERT INTO games DEFAULT VALUES", function(err) {
+			gameObject.gameId = this.lastID;
+		});
+	});
+}
+function persistGameResult(gameObject, result)
+{
+	if(!gameObject.gameId) return;
+	db.serialize(function() {
+		db.run("UPDATE games SET result=? WHERE game_id=?", result, gameObject.gameId);
+	});
+}
+function persistMove(gameObject, moveObject)
+{
+	if(!gameObject.gameId) return;
+	db.serialize(function() {
+		db.run("INSERT INTO moves (game_id, from_space, to_space, promote_to) " +
+			"VALUES (?,?,?,?)",
+			gameObject.gameId,
+			moveObject.from.toString(),
+			moveObject.to.toString(),
+			moveObject.promoteTo);
+	});
+}
+
+//Set cleanup handlers
+process.on("exit", function() {
+	doCleanup();
+});
+process.on("SIGINT", function() {
+	process.exit();
+});
+process.on("uncaughtException", function(e) {
+	console.log(e);
+	process.exit();
+});
+
+//Open or create the database
+var db = new sqlite3.Database("webgl-chess-db.sqlite");
+db.serialize(function() {
+	db.run("CREATE TABLE IF NOT EXISTS games ( " +
+		"game_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+		"result TEXT)");
+	db.run("CREATE TABLE IF NOT EXISTS moves ( " +
+		"move_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+		"game_id INTEGER, " +
+		"from_space TEXT, " +
+		"to_space TEXT, " +
+		"promote_to TEXT)");
+});
 
 //Set up an HTTP server with cross-origin enabled
 var httpServer = http.createServer(function(request, response) {
@@ -91,6 +152,8 @@ wss.on("connection", function(sock) {
 				checkGameTimers(sock.game) &&
 				sock.game.doMove(msg.from, msg.to, msg.promoteTo))
 			{
+				//Save the move details
+				persistMove(sock.game, msg);
 				//Relay move to opponent
 				if(sock.partner)
 				{
@@ -105,7 +168,16 @@ wss.on("connection", function(sock) {
 			else
 			{
 				console.log("Invalid move detected!");
-				//TODO - log game/player details
+				//Log move request (capped at 128 chars)
+				var logData = data;
+				if(logData.length > 128) logData = logData.substring(0, 128);
+				var logGameState = {
+					"draw": sock.game.isDraw || false,
+					"checkmate": sock.game.isCheckmate || false,
+					"outOfTime": sock.game.isOutOfTime || false
+				};
+				sock.game.abortReason = "Invalid move " + logData + ", game state " + JSON.stringify(logGameState);
+				//Abort game
 				sock.close();
 			}
 			break;
@@ -124,9 +196,45 @@ wss.on("connection", function(sock) {
 	});
 
 	sock.on("close", function() {
+		//If a partner is connected, notify them
+		if(sock.partner)
+		{
+			sock.partner.game = null;
+			sock.partner.partner = null;
+			sock.partner.send(JSON.stringify({
+				"type": "leave"
+			}));
+		}
 		//Destroy game
 		if(sock.game)
 		{
+			//Save result
+			var gameResult = "";
+			if(sock.game.abortReason)
+			{
+				gameResult = sock.game.abortReason;
+			}
+			else
+			{
+				if(sock.game.isCheckmate)
+				{
+					gameResult = "Checkmate";
+				}
+				else if(sock.game.isDraw)
+				{
+					gameResult = "Draw";
+				}
+				else if(sock.game.isOutOfTime)
+				{
+					gameResult = "Out of time";
+				}
+				else
+				{
+					gameResult = "Disconnected " + sock.assignedColor;
+				}
+			}
+			gameResult += " (" + sock.game.turn + "'s turn)";
+			persistGameResult(sock.game, gameResult);
 			//Remove from active games
 			var i = activeGames.indexOf(sock.game);
 			if(i >= 0)
@@ -136,15 +244,6 @@ wss.on("connection", function(sock) {
 			//Disconnect players from game
 			sock.game.sessions = null;
 			sock.game = null;
-		}
-		//If a partner is connected, notify them
-		if(sock.partner)
-		{
-			sock.partner.send(JSON.stringify({
-				"type": "leave"
-			}));
-			sock.partner.game = null;
-			sock.partner.partner = null;
 		}
 		//Remove from queue
 		if(sessionWaiting.length && sessionWaiting[0] == sock)
@@ -162,6 +261,7 @@ wss.on("connection", function(sock) {
 		game.timerReference = new Date().getTime() / 1000;
 		game.sessions = [sock, partner];
 		activeGames.push(game);
+		persistGame(game);
 		console.log("Session started");
 
 		partner.game = game;
@@ -190,3 +290,4 @@ setInterval(function() {
 		checkGameTimers(activeGames[i]);
 	}
 }, 500);
+
