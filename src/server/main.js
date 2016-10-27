@@ -143,55 +143,65 @@ var wss = new WebSocketServer({ "server": httpServer });
 wss.on("connection", function(sock) {
 
 	sock.on("message", function(data) {
-		var msg = JSON.parse(data);
-		switch(msg.type)
+		try
 		{
-		case "move":
-			//Apply move to session game state
-			if(sock.game.turn == sock.assignedColor &&
-				checkGameTimers(sock.game) &&
-				sock.game.doMove(msg.from, msg.to, msg.promoteTo))
+			var msg = JSON.parse(data);
+
+			switch(msg.type)
 			{
-				//Save the move details
-				persistMove(sock.game, msg);
-				//Relay move to opponent
+			case "move":
+				//Apply move to session game state
+				if(sock.game.turn == sock.assignedColor &&
+					checkGameTimers(sock.game) &&
+					sock.game.doMove(msg.from, msg.to, msg.promoteTo))
+				{
+					//Save the move details
+					persistMove(sock.game, msg);
+					//Relay move to opponent
+					if(sock.partner)
+					{
+						sock.partner.send(JSON.stringify({
+							"type": "move",
+							"from": msg.from,
+							"to": msg.to,
+							"promoteTo": msg.promoteTo
+						}));
+					}
+				}
+				else
+				{
+					console.log("Invalid move detected!");
+					//Log move request (capped at 128 chars)
+					var logData = data;
+					if(logData.length > 128) logData = logData.substring(0, 128);
+					var logGameState = {
+						"draw": sock.game.isDraw || false,
+						"checkmate": sock.game.isCheckmate || false,
+						"outOfTime": sock.game.isOutOfTime || false
+					};
+					sock.game.abortReason = "Invalid move " + logData + ", game state " + JSON.stringify(logGameState);
+					//Abort game
+					sock.close();
+				}
+				break;
+			case "chat":
+				//Simply relay the message
 				if(sock.partner)
 				{
 					sock.partner.send(JSON.stringify({
-						"type": "move",
-						"from": msg.from,
-						"to": msg.to,
-						"promoteTo": msg.promoteTo
+						"type": "chat",
+						"text": msg.text,
+						"player": sock.assignedColor
 					}));
 				}
+				break;
 			}
-			else
-			{
-				console.log("Invalid move detected!");
-				//Log move request (capped at 128 chars)
-				var logData = data;
-				if(logData.length > 128) logData = logData.substring(0, 128);
-				var logGameState = {
-					"draw": sock.game.isDraw || false,
-					"checkmate": sock.game.isCheckmate || false,
-					"outOfTime": sock.game.isOutOfTime || false
-				};
-				sock.game.abortReason = "Invalid move " + logData + ", game state " + JSON.stringify(logGameState);
-				//Abort game
-				sock.close();
-			}
-			break;
-		case "chat":
-			//Simply relay the message
-			if(sock.partner)
-			{
-				sock.partner.send(JSON.stringify({
-					"type": "chat",
-					"text": msg.text,
-					"player": sock.assignedColor
-				}));
-			}
-			break;
+		}
+		catch(err)
+		{
+			//Abort game
+			sock.game.abortReason = "Exception handling message: " + err.message;
+			sock.close();
 		}
 	});
 
